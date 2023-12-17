@@ -75,29 +75,12 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 	private void loadImages() {
-		down = new ImageIcon("/Pacman_JavaFX/src/Images/down.gif").getImage();
-		up = new ImageIcon("/Pacman_JavaFX/src/Images/up.gif").getImage();
-		right = new ImageIcon("/Pacman_JavaFX/src/Images/right.gif").getImage();
-		left = new ImageIcon("/Pacman_JavaFX/src/Images/left.gif").getImage();
-		ghost = new ImageIcon("/Pacman_JavaFX/src/Images/ghost.gif").getImage();
-		heart = new ImageIcon("/Pacman_JavaFX/src/Images/heart.gif").getImage();
-	}
-
-	public void showIntroScreen(Graphics2D g2d) {
-		String start = "Press SPACE to start";
-		g2d.setColor(Color.yellow);
-		g2d.drawString(start, SCREEN_SIZE / 4, 150);
-	}
-
-	public void drawScore(Graphics2D g2d) {
-		g2d.setFont(smallFont);
-		g2d.setColor(new Color(5, 151, 79));
-		String s = "Score: " + score;
-		g2d.drawString(s,  SCREEN_SIZE / 2 + 96, SCREEN_SIZE + 16);
-
-		for (int i = 0; i < lives; i++) {
-			g2d.drawImage(heart,  i * 28 + 8, SCREEN_SIZE +1, this);
-		}
+		down = new ImageIcon("C:\\Users\\simeo\\Downloads\\down.gif").getImage();
+		up = new ImageIcon("C:\\Users\\simeo\\Downloads\\up.gif").getImage();
+		right = new ImageIcon("C:\\Users\\simeo\\Downloads\\right.gif").getImage();
+		left = new ImageIcon("C:\\Users\\simeo\\Downloads\\left.gif").getImage();
+		ghost = new ImageIcon("C:\\Users\\simeo\\Downloads\\ghost.gif").getImage();
+		heart = new ImageIcon("C:\\Users\\simeo\\Downloads\\heart.gif").getImage();
 	}
 
 	private void initVariables() {
@@ -115,21 +98,6 @@ public class Model extends JPanel implements ActionListener{
 		timer.start();
 	}
 
-	private void initGame() { // Spelet initieras - sätt ut startvärden som ska återställas vid spelstart
-		lives = 3;
-		score = 0;
-		initLevel();
-		N_GHOSTS = 6;
-		currentSpeed = 3; // Pacmans hastighet initieras
-	}
-
-	private void initLevel() {
-		int i;
-		for (i = 0; i<N_BLOCKS * N_BLOCKS; i++) { // För varje ruta 15x15 = 225 st 
-			screenData[i] = levelData[i]; // Kopiera det värdet på spelplan som representerar den rutan
-		}
-	}
-
 	private void playGame(Graphics2D g2d) { // funktionen som håller igång spelet.
 		if (dying) {
 			death();
@@ -140,52 +108,55 @@ public class Model extends JPanel implements ActionListener{
 			checkMaze();
 		}
 	}
+	
+	public void showIntroScreen(Graphics2D g2d) {
+		String start = "Press SPACE to start";
+		g2d.setColor(Color.orange);
+		g2d.drawString(start, (SCREEN_SIZE) / 4, 150);
+	}
+	
+	public void drawScore(Graphics2D g) {
+		g.setFont(smallFont);
+		g.setColor(Color.orange);
+		String s = "Score: " + score;
+		g.drawString(s,  SCREEN_SIZE / 2 + 96, SCREEN_SIZE + 16);
 
-	public void movePacman() {
-		int pos;
-		short ch;
-
-		if (pacman_x % BLOCK_SIZE == 0 && pacman_y % BLOCK_SIZE == 0) {
-			pos = pacman_x / BLOCK_SIZE + N_BLOCKS * (int) (pacman_y / BLOCK_SIZE);
-			ch = screenData[pos];
-			if ((ch & 16) !=0) {
-				screenData[pos] = (short) (ch & 15);
-				score++;
-			}
-			if (req_dx != 0 || req_dy != 0) {
-				if (!((req_dx == -1 && req_dy == 0 && (ch & 1) != 0)
-						|| (req_dy == 1 && req_dy == 0 && (ch & 4) != 0)
-						|| (req_dx == 0 && req_dy == -1 && (ch & 2) != 0)
-						|| (req_dx == 0 && req_dy == 1 && (ch & 8) != 0))) {
-					pacman_dx = req_dx;
-					pacman_dy = req_dy;
-				}
-			}
-
-			// Check for standstill
-			if ((pacman_dx == -1 && pacman_dy == 0 && (ch & 1) != 0)
-					|| (pacman_dx == 1 && pacman_dy == 0 && (ch & 4) != 0)
-					|| (pacman_dx == 0 && pacman_dy == -1 && (ch & 2) != 0)
-					|| (pacman_dx == 0 && pacman_dy == 1 && (ch & 8) != 0)) {
-				pacman_dx = 0;
-				pacman_dy = 0;
-			}
+		for (int i = 0; i < lives; i++) {
+			g.drawImage(heart,  i * 28 + 8, SCREEN_SIZE +1, this);
 		}
-		pacman_x = pacman_x + PACMAN_SPEED * pacman_dx;
-		pacman_y = pacman_y + PACMAN_SPEED * pacman_dy;
 	}
 
-	private void drawPacman(Graphics2D g2d) {
+	public void checkMaze() {
+		int i = 0;
+		boolean finished = true;
 
-		if (req_dx == -1) {
-			g2d.drawImage(left, pacman_x + 1, pacman_y + 1, this );
-		} else if (req_dx == 1) {
-			g2d.drawImage(right, pacman_x + 1, pacman_y + 1, this);
-		} else if (req_dy == -1) {
-			g2d.drawImage(up, pacman_x + 1, pacman_y + 1, this);
-		} else {
-			g2d.drawImage(down, pacman_x + 1, pacman_y + 1, this);
+		while (i < N_BLOCKS * N_BLOCKS && finished ) {
+			if ((screenData[i]) !=0) {
+				finished = false;
+			}
+			i++;
+		} 
+
+		if (finished) {
+			score +=50;
+
+			if (N_GHOSTS < MAX_GHOSTS) {
+				N_GHOSTS++;
+			}
+			if (currentSpeed < maxSpeed) {
+				currentSpeed++;
+			}
+		}	initLevel();
+	}
+
+	private void death() {
+		lives--;
+		
+		if (lives == 0) {
+			inGame = false;
 		}
+
+		continueLevel();
 	}
 
 	private void moveGhosts(Graphics2D g2d) {
@@ -260,70 +231,58 @@ public class Model extends JPanel implements ActionListener{
 		}
 	}
 
+	
 	private void drawGhost(Graphics2D g2d, int x, int y) {
 		g2d.drawImage(ghost, x, y, this);
 	}
+	
+	public void movePacman() {
+		int pos;
+		short ch;
 
-	public void checkMaze() {
-		int i = 0;
-		boolean finished = true;
-
-		while (i < N_BLOCKS * N_BLOCKS && finished ) {
-			if ((screenData[i] & 48) !=0) {
-				finished = false;
+		if (pacman_x % BLOCK_SIZE == 0 && pacman_y % BLOCK_SIZE == 0) {
+			pos = pacman_x / BLOCK_SIZE + N_BLOCKS * (int) (pacman_y / BLOCK_SIZE);
+			ch = screenData[pos];
+			if ((ch & 16) !=0) {
+				screenData[pos] = (short) (ch & 15);
+				score++;
 			}
-		} i++;
-
-		if (finished) {
-			score +=50;
-
-			if (N_GHOSTS < MAX_GHOSTS) {
-				N_GHOSTS++;
+			if (req_dx != 0 || req_dy != 0) {
+				if (!((req_dx == -1 && req_dy == 0 && (ch & 1) != 0)
+						|| (req_dy == 1 && req_dy == 0 && (ch & 4) != 0)
+						|| (req_dx == 0 && req_dy == -1 && (ch & 2) != 0)
+						|| (req_dx == 0 && req_dy == 1 && (ch & 8) != 0))) {
+					pacman_dx = req_dx;
+					pacman_dy = req_dy;
+				}
 			}
-			if (currentSpeed < maxSpeed) {
-				currentSpeed++;
-			}
-		}	initLevel();
-	}
 
-	private void death() {
-		lives--;
-		if (lives ==0) {
-			inGame = false;
+			// Check for standstill
+			if ((pacman_dx == -1 && pacman_dy == 0 && (ch & 1) != 0)
+					|| (pacman_dx == 1 && pacman_dy == 0 && (ch & 4) != 0)
+					|| (pacman_dx == 0 && pacman_dy == -1 && (ch & 2) != 0)
+					|| (pacman_dx == 0 && pacman_dy == 1 && (ch & 8) != 0)) {
+				pacman_dx = 0;
+				pacman_dy = 0;
+			}
 		}
-
-		continueLevel();
+		pacman_x = pacman_x + PACMAN_SPEED * pacman_dx;
+		pacman_y = pacman_y + PACMAN_SPEED * pacman_dy;
 	}
+	
+	private void drawPacman(Graphics2D g2d) {
 
-
-	private void continueLevel() { // Definierar positionen av alla spöken och sätter ut en random hastighet till dem
-		int dx = 1;
-		int random;
-
-		for (int i = 0; i < N_GHOSTS; i++) { // För varje spöke
-			ghost_y[i] = 4 * BLOCK_SIZE;
-			ghost_x[i] = 4 * BLOCK_SIZE;
-			ghost_dy[i] = 0;
-			ghost_dx[i] = dx;
-			dx = -dx;
-			random = (int) (Math.random() * (currentSpeed + 1));
-
-			if (random > currentSpeed) {
-				random = currentSpeed;
-			}
-
-			ghostSpeed[i] = validSpeeds[random]; // spökenas hastighet sätts ut fast randomized
+		if (req_dx == -1) {
+			g2d.drawImage(left, pacman_x + 1, pacman_y + 1, this );
+		} else if (req_dx == 1) {
+			g2d.drawImage(right, pacman_x + 1, pacman_y + 1, this);
+		} else if (req_dy == -1) {
+			g2d.drawImage(up, pacman_x + 1, pacman_y + 1, this);
+		} else {
+			g2d.drawImage(down, pacman_x + 1, pacman_y + 1, this);
 		}
-
-		pacman_x = 15 * BLOCK_SIZE;
-		pacman_y = 15 * BLOCK_SIZE;
-		pacman_dx = 0;
-		pacman_dy = 0;
-		req_dx = 0;
-		req_dy = 0;
-		dying = false;
 	}
-
+	
 	private void drawMaze(Graphics2D g2d) {
 
 		short i = 0;
@@ -367,10 +326,57 @@ public class Model extends JPanel implements ActionListener{
 		}
 	}
 
+	private void initGame() { // Spelet initieras - sätt ut startvärden som ska återställas vid spelstart
+		lives = 3;
+		score = 0;
+		initLevel();
+		N_GHOSTS = 6;
+		currentSpeed = 3; // Pacmans hastighet initieras
+	}
+
+	private void initLevel() {
+		int i;
+		for (i = 0; i<N_BLOCKS * N_BLOCKS; i++) { // För varje ruta 15x15 = 225 st 
+			screenData[i] = levelData[i]; // Kopiera det värdet på spelplan som representerar den rutan
+		}
+	}
+
+
+	private void continueLevel() { // Definierar positionen av alla spöken och sätter ut en random hastighet till dem
+		int dx = 1;
+		int random;
+
+		for (int i = 0; i < N_GHOSTS; i++) { // För varje spöke
+			ghost_y[i] = 4 * BLOCK_SIZE;
+			ghost_x[i] = 4 * BLOCK_SIZE;
+			ghost_dy[i] = 0;
+			ghost_dx[i] = dx;
+			dx = -dx;
+			random = (int) (Math.random() * (currentSpeed + 1));
+
+			if (random > currentSpeed) {
+				random = currentSpeed;
+			}
+
+			ghostSpeed[i] = validSpeeds[random]; // spökenas hastighet sätts ut fast randomized
+		}
+
+		pacman_x = 7 * BLOCK_SIZE;
+		pacman_y = 11 * BLOCK_SIZE;
+		pacman_dx = 0;
+		pacman_dy = 0;
+		req_dx = 0;
+		req_dy = 0;
+		dying = false;
+	}
+
+	
+
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
 		Graphics2D g2d = (Graphics2D) g;
+		
 		g2d.setColor(Color.black);
 		g2d.fillRect(0, 0, d.width, d.height);
 
@@ -379,7 +385,6 @@ public class Model extends JPanel implements ActionListener{
 
 		if (inGame) {
 			playGame(g2d);
-
 		}else {
 			showIntroScreen(g2d);
 		}
