@@ -27,7 +27,7 @@ public class Model extends JPanel implements ActionListener{
 	private final int N_BLOCKS = 15; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
 	private final int SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE; // rutornas totala yta. Hur stor yta kommer dessa rutor ta upp? Spelplanen kommer dock vara 15x15
 	private final int MAX_GHOSTS = 12; // Totala antalet spöken som kan finns med
-	private final int PACMAN_SPEED = 6; // Hur snabb pacman ska vara från början - ta bort final om denna ska ändras under spelets gång
+	private final int PACMAN_SPEED = 4; // Hur snabb pacman ska vara från början - ta bort final om denna ska ändras under spelets gång
 
 	private int N_GHOSTS = 6; // Antalet spöken som finns med från början
 	private int lives, score;
@@ -39,12 +39,6 @@ public class Model extends JPanel implements ActionListener{
 
 	private int pacman_x, pacman_y, pacman_dx, pacman_dy; // Delta grejerna är riktningen för pacman som åberopas, de andra är positionen för pacman
 	private int req_dx, req_dy; // Determined in the Tadapter class, extends KeyAdapter{} och hanterar inmatningen av tangenttryck
-
-	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
-	private final int maxSpeed = 6; 
-	private int currentSpeed = 3; // Pacmands hastighet från början (behöver denna verkligen vara satt till 3? Med tanke på att den ändå kan byta värde när den initieras?
-	private short [] screenData; // Tar in datan för att rita om spelet är något händer
-	private Timer timer;
 
 	private final short levelData[] = {
 			19, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
@@ -66,6 +60,17 @@ public class Model extends JPanel implements ActionListener{
 	// 0 = vägg, 1 = vägg till vänster, 2 = tak vägg, 4 = vägg till höger, 8 = golv vägg, 16 = ätbara platser
 	// Gäller att plussa ihop dem för att få dem att fungera
 
+	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
+	private final int maxSpeed = 6; 
+
+	private int currentSpeed = 2; // Pacmands hastighet från början (behöver denna verkligen vara satt till 3? Med tanke på att den ändå kan byta värde när den initieras?
+	private short [] screenData; // Tar in datan för att rita om spelet är något händer
+	private Timer timer;
+	
+	private boolean gameOver = false;
+	private boolean gameStarted = false;
+
+	
 	public Model() {
 		loadImages();
 		initVariables();
@@ -74,15 +79,17 @@ public class Model extends JPanel implements ActionListener{
 		initGame();
 	}
 
+	
 	private void loadImages() {
 		down = new ImageIcon("C:\\Users\\simeo\\Downloads\\down.gif").getImage();
 		up = new ImageIcon("C:\\Users\\simeo\\Downloads\\up.gif").getImage();
 		right = new ImageIcon("C:\\Users\\simeo\\Downloads\\right.gif").getImage();
 		left = new ImageIcon("C:\\Users\\simeo\\Downloads\\left.gif").getImage();
 		ghost = new ImageIcon("C:\\Users\\simeo\\Downloads\\ghost.gif").getImage();
-		heart = new ImageIcon("C:\\Users\\simeo\\Downloads\\heart.gif").getImage();
+		heart = new ImageIcon("C:\\Users\\simeo\\Downloads\\heart.png").getImage();
 	}
 
+	
 	private void initVariables() {
 		screenData = new short[N_BLOCKS * N_BLOCKS];
 		d = new Dimension(400, 400);
@@ -98,6 +105,7 @@ public class Model extends JPanel implements ActionListener{
 		timer.start();
 	}
 
+	
 	private void playGame(Graphics2D g2d) { // funktionen som håller igång spelet.
 		if (dying) {
 			death();
@@ -108,12 +116,14 @@ public class Model extends JPanel implements ActionListener{
 			checkMaze();
 		}
 	}
+
 	
 	public void showIntroScreen(Graphics2D g2d) {
 		String start = "Press SPACE to start";
 		g2d.setColor(Color.orange);
 		g2d.drawString(start, (SCREEN_SIZE) / 4, 150);
 	}
+
 	
 	public void drawScore(Graphics2D g) {
 		g.setFont(smallFont);
@@ -125,20 +135,28 @@ public class Model extends JPanel implements ActionListener{
 			g.drawImage(heart,  i * 28 + 8, SCREEN_SIZE +1, this);
 		}
 	}
-
+	
+	public void drawGameOver(Graphics2D g2d) {
+	g2d.setFont(smallFont);
+	g2d.setColor(Color.red);
+	String s = "GAME OVER";
+	g2d.drawString(s,  (SCREEN_SIZE) / 4, 150);
+	}
+	
 	public void checkMaze() {
 		int i = 0;
 		boolean finished = true;
 
-		while (i < N_BLOCKS * N_BLOCKS && finished ) {
-			if ((screenData[i]) !=0) {
-				finished = false;
-			}
-			i++;
-		} 
+		  // Check for the presence of pellets (represented by the number 16)
+	    for (i = 0; i < N_BLOCKS * N_BLOCKS; i++) {
+	        if ((screenData[i] & 16) !=0) {
+	            finished = false;
+	            break;
+	        }
+	    }
 
 		if (finished) {
-			score +=50;
+			score += 50;
 
 			if (N_GHOSTS < MAX_GHOSTS) {
 				N_GHOSTS++;
@@ -146,19 +164,23 @@ public class Model extends JPanel implements ActionListener{
 			if (currentSpeed < maxSpeed) {
 				currentSpeed++;
 			}
-		}	initLevel();
+			initLevel();
+		}
 	}
 
+	
 	private void death() {
 		lives--;
-		
+
 		if (lives == 0) {
+			gameOver = true;
 			inGame = false;
 		}
 
 		continueLevel();
 	}
 
+	
 	private void moveGhosts(Graphics2D g2d) {
 
 		int pos;
@@ -231,11 +253,12 @@ public class Model extends JPanel implements ActionListener{
 		}
 	}
 
-	
+
 	private void drawGhost(Graphics2D g2d, int x, int y) {
 		g2d.drawImage(ghost, x, y, this);
 	}
 	
+
 	public void movePacman() {
 		int pos;
 		short ch;
@@ -243,10 +266,13 @@ public class Model extends JPanel implements ActionListener{
 		if (pacman_x % BLOCK_SIZE == 0 && pacman_y % BLOCK_SIZE == 0) {
 			pos = pacman_x / BLOCK_SIZE + N_BLOCKS * (int) (pacman_y / BLOCK_SIZE);
 			ch = screenData[pos];
+
 			if ((ch & 16) !=0) {
 				screenData[pos] = (short) (ch & 15);
 				score++;
+		//		System.out.println("Eaten a food pellet at position " + pos + ". New screenData value: " + screenData[pos]);
 			}
+
 			if (req_dx != 0 || req_dy != 0) {
 				if (!((req_dx == -1 && req_dy == 0 && (ch & 1) != 0)
 						|| (req_dy == 1 && req_dy == 0 && (ch & 4) != 0)
@@ -269,6 +295,7 @@ public class Model extends JPanel implements ActionListener{
 		pacman_x = pacman_x + PACMAN_SPEED * pacman_dx;
 		pacman_y = pacman_y + PACMAN_SPEED * pacman_dy;
 	}
+
 	
 	private void drawPacman(Graphics2D g2d) {
 
@@ -282,6 +309,7 @@ public class Model extends JPanel implements ActionListener{
 			g2d.drawImage(down, pacman_x + 1, pacman_y + 1, this);
 		}
 	}
+
 	
 	private void drawMaze(Graphics2D g2d) {
 
@@ -291,7 +319,7 @@ public class Model extends JPanel implements ActionListener{
 		for (y = 0; y < SCREEN_SIZE; y += BLOCK_SIZE) {
 			for (x = 0; x < SCREEN_SIZE; x += BLOCK_SIZE) {
 
-				g2d.setColor(new Color(0,72,251));
+				g2d.setColor(new Color(0,153,0));
 				g2d.setStroke(new BasicStroke(3));
 
 				if ((levelData[i] == 0)) { 
@@ -326,19 +354,23 @@ public class Model extends JPanel implements ActionListener{
 		}
 	}
 
+	
 	private void initGame() { // Spelet initieras - sätt ut startvärden som ska återställas vid spelstart
 		lives = 3;
 		score = 0;
 		initLevel();
-		N_GHOSTS = 6;
-		currentSpeed = 3; // Pacmans hastighet initieras
+		N_GHOSTS = 3;
+		currentSpeed = 2; // Pacmans hastighet initieras
 	}
 
+	
 	private void initLevel() {
 		int i;
 		for (i = 0; i<N_BLOCKS * N_BLOCKS; i++) { // För varje ruta 15x15 = 225 st 
 			screenData[i] = levelData[i]; // Kopiera det värdet på spelplan som representerar den rutan
 		}
+		
+		continueLevel();
 	}
 
 
@@ -370,13 +402,12 @@ public class Model extends JPanel implements ActionListener{
 		dying = false;
 	}
 
-	
 
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
 		Graphics2D g2d = (Graphics2D) g;
-		
+
 		g2d.setColor(Color.black);
 		g2d.fillRect(0, 0, d.width, d.height);
 
@@ -385,51 +416,54 @@ public class Model extends JPanel implements ActionListener{
 
 		if (inGame) {
 			playGame(g2d);
-		}else {
+		}else if(gameOver) { 
+			drawGameOver(g2d);
+		}else if(!gameStarted) {
 			showIntroScreen(g2d);
 		}
 
 		Toolkit.getDefaultToolkit().sync();
 		g2d.dispose();
-		}
+	}
+
 	
-		class TAdapter extends KeyAdapter {
+	class TAdapter extends KeyAdapter {
 
-			public void keyPressed(KeyEvent e) {
-				int key = e.getKeyCode();
+		public void keyPressed(KeyEvent e) {
+			int key = e.getKeyCode();
 
-				if (inGame) {
-					if (key == KeyEvent.VK_LEFT) {
-						req_dx = -1; // Vänster
-						req_dy = 0;
-					}
-					else if (key == KeyEvent.VK_RIGHT) {
-						req_dx = 1; // Höger
-						req_dy = 0;
-					}
-					else if (key == KeyEvent.VK_UP) {
-						req_dx = 0;
-						req_dy = -1; // Upp
-					}
-					else if (key == KeyEvent.VK_DOWN) {
-						req_dx = 0;
-						req_dy = 1; // Ner
-					}
-					else if (key == KeyEvent.VK_ESCAPE && timer.isRunning()) {
-						inGame = false; // Avsluta spelet genom att klicka på mellanslag
-					} 
-				} else {
-					if (key == KeyEvent.VK_SPACE) {
-						inGame = true;
-						initGame();
-					}
+			if (inGame) {
+				if (key == KeyEvent.VK_LEFT) {
+					req_dx = -1; // Vänster
+					req_dy = 0;
+				}
+				else if (key == KeyEvent.VK_RIGHT) {
+					req_dx = 1; // Höger
+					req_dy = 0;
+				}
+				else if (key == KeyEvent.VK_UP) {
+					req_dx = 0;
+					req_dy = -1; // Upp
+				}
+				else if (key == KeyEvent.VK_DOWN) {
+					req_dx = 0;
+					req_dy = 1; // Ner
+				}
+				else if (key == KeyEvent.VK_ESCAPE && timer.isRunning()) {
+					inGame = false; // Avsluta spelet genom att klicka på Escape
+				} 
+			} else {
+				if (key == KeyEvent.VK_SPACE) {
+					inGame = true;
+					initGame();
 				}
 			}
 		}
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			repaint();
-		}
-
 	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		repaint();
+	}
+
+}
