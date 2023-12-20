@@ -1,4 +1,4 @@
-//
+// Lägg över allt i olika klasser
 //// Fixa så att spöken kan skjuta
 //// Fixa så man kan plocka upp ett extra liv ibland
 //// 1. Det skall finnas 2 dubblett fiender (dvs två av varje fiende) – PRIO 1

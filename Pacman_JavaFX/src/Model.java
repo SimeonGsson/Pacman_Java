@@ -19,12 +19,12 @@ import javax.swing.Timer;
 public class Model extends JPanel implements ActionListener{
 
 	private Dimension d; // Spelplanens storlek
-	private final Font smallFont = new Font("Arial", Font.BOLD, 14); // Font för texten
+	private final Font smallFont = new Font("Arial", Font.BOLD, 17); // Font för texten
 	private boolean inGame = false;
 	private boolean dying = false;
 
 	private final int BLOCK_SIZE = 24; // Storleken på rutorna
-	private final int N_BLOCKS = 15; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
+	private final int N_BLOCKS = 20; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
 	private final int SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE; // rutornas totala yta. Hur stor yta kommer dessa rutor ta upp? Spelplanen kommer dock vara 15x15
 	private final int MAX_GHOSTS = 12; // Totala antalet spöken som kan finns med
 	private final int PACMAN_SPEED = 4; // Hur snabb pacman ska vara från början - ta bort final om denna ska ändras under spelets gång
@@ -39,27 +39,58 @@ public class Model extends JPanel implements ActionListener{
 
 	private int pacman_x, pacman_y, pacman_dx, pacman_dy; // Delta grejerna är riktningen för pacman som åberopas, de andra är positionen för pacman
 	private int req_dx, req_dy; // Determined in the Tadapter class, extends KeyAdapter{} och hanterar inmatningen av tangenttryck
+	
+	private final short levelData1[] = {
+			19, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
+			17, 16, 16, 16, 16, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			25, 24, 24, 24, 28, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			0,  0,  0,  0,  0,  0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			19, 18, 18, 18, 18, 18, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24, 24, 20,
+			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
+			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
+			17, 16, 16, 16, 24, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 18, 18, 18, 18, 18, 18, 18, 18, 18, 20,
+			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 28
+	};
 
-	private final short levelData[] = {
-			19, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
-			17, 16, 16, 16, 16, 24, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-			25, 24, 24, 24, 28, 0, 17, 16, 16, 16, 16, 16, 16, 16, 20,
-			0,  0,  0,  0,  0,  0, 17, 16, 16, 16, 16, 16, 16, 16, 20,
-			19, 18, 18, 18, 18, 18, 16, 16, 16, 16, 24, 24, 24, 24, 20,
-			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 21,
-			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 21,
-			17, 16, 16, 16, 24, 16, 16, 16, 16, 20, 0,  0,  0,   0, 21,
-			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 18, 18, 18, 18, 20,
-			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 20,
-			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 20,
-			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 20,
-			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 24, 24, 24, 24, 28
+	private final short levelData2[] = {
+			19, 18, 18, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
+			17, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 24, 28, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			21,  0,  0,  0,  17,  16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 18, 18, 18, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24, 24, 20,
+			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
+			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
+			17, 16, 16, 16, 24, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 18, 18, 18, 18, 18, 18, 18, 18, 18, 20,
+			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
+			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 20,
+			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 20, 0, 0, 0, 21,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 19, 18, 20,
+			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 17, 16, 20,
+			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 26, 24, 24, 28
 	};
 	// 0 = vägg, 1 = vägg till vänster, 2 = tak vägg, 4 = vägg till höger, 8 = golv vägg, 16 = ätbara platser
 	// Gäller att plussa ihop dem för att få dem att fungera
 
+	GameMap mapOne = new GameMap(20, levelData1);
+	GameMap mapTwo = new GameMap(20, levelData2);
+	
 	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
 	private final int maxSpeed = 6; 
 
@@ -92,7 +123,7 @@ public class Model extends JPanel implements ActionListener{
 	
 	private void initVariables() {
 		screenData = new short[N_BLOCKS * N_BLOCKS];
-		d = new Dimension(400, 400);
+		d = new Dimension(500, 540);
 		ghost_x = new int [MAX_GHOSTS];
 		ghost_dx = new int [MAX_GHOSTS];
 		ghost_y = new int [MAX_GHOSTS];
@@ -114,14 +145,18 @@ public class Model extends JPanel implements ActionListener{
 			drawPacman(g2d);
 			moveGhosts(g2d);
 			checkMaze();
+
 		}
 	}
 
 	
 	public void showIntroScreen(Graphics2D g2d) {
-		String start = "Press SPACE to start";
+		String start = "Välkommen! Klicka SPACE för att starta :)";
+		g2d.setColor(Color.black);
+		g2d.drawRect(10, 100, 460, 100);
+		g2d.fillRect(10, 100, 460, 100);
 		g2d.setColor(Color.orange);
-		g2d.drawString(start, (SCREEN_SIZE) / 4, 150);
+		g2d.drawString(start, (SCREEN_SIZE) / 6, 150);
 	}
 
 	
@@ -322,7 +357,7 @@ public class Model extends JPanel implements ActionListener{
 				g2d.setColor(new Color(0,153,0));
 				g2d.setStroke(new BasicStroke(3));
 
-				if ((levelData[i] == 0)) { 
+				if ((levelData2[i] == 0)) { 
 					g2d.fillRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
 				}
 
@@ -359,7 +394,7 @@ public class Model extends JPanel implements ActionListener{
 		lives = 3;
 		score = 0;
 		initLevel();
-		N_GHOSTS = 3;
+		N_GHOSTS = 4;
 		currentSpeed = 2; // Pacmans hastighet initieras
 	}
 
@@ -367,7 +402,7 @@ public class Model extends JPanel implements ActionListener{
 	private void initLevel() {
 		int i;
 		for (i = 0; i<N_BLOCKS * N_BLOCKS; i++) { // För varje ruta 15x15 = 225 st 
-			screenData[i] = levelData[i]; // Kopiera det värdet på spelplan som representerar den rutan
+			screenData[i] = levelData2[i]; // Kopiera det värdet på spelplan som representerar den rutan
 		}
 		
 		continueLevel();
@@ -379,8 +414,8 @@ public class Model extends JPanel implements ActionListener{
 		int random;
 
 		for (int i = 0; i < N_GHOSTS; i++) { // För varje spöke
-			ghost_y[i] = 4 * BLOCK_SIZE;
-			ghost_x[i] = 4 * BLOCK_SIZE;
+			ghost_y[i] = 2 * BLOCK_SIZE;
+			ghost_x[i] = 2 * BLOCK_SIZE;
 			ghost_dy[i] = 0;
 			ghost_dx[i] = dx;
 			dx = -dx;
@@ -393,8 +428,8 @@ public class Model extends JPanel implements ActionListener{
 			ghostSpeed[i] = validSpeeds[random]; // spökenas hastighet sätts ut fast randomized
 		}
 
-		pacman_x = 7 * BLOCK_SIZE;
-		pacman_y = 11 * BLOCK_SIZE;
+		pacman_x = 17 * BLOCK_SIZE;
+		pacman_y = 17 * BLOCK_SIZE;
 		pacman_dx = 0;
 		pacman_dy = 0;
 		req_dx = 0;

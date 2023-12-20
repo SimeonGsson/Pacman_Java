@@ -12,7 +12,7 @@ public class Pacman extends JFrame{
 		Pacman pac = new Pacman();
 		pac.setVisible(true);
 		pac.setTitle("Pacman");
-		pac.setSize(376,425);
+		pac.setSize(496,545);
 		pac.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pac.setLocationRelativeTo(null);
 		
