@@ -1,0 +1,94 @@
+import java.awt.Graphics2D;
+import java.awt.Image;
+import javax.swing.ImageIcon;
+
+public class Ghost {
+    private int[] ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed;
+    private int BLOCK_SIZE, N_GHOSTS;
+    private short[] screenData;
+    private Image ghost;
+
+    public Ghost(short[] screenData, int N_GHOSTS, int BLOCK_SIZE, int[] ghost_x, int[] ghost_y, int[] ghost_dx, int[] ghost_dy, int[] dx, int[] dy, int[] ghostSpeed) {
+        this.N_GHOSTS = N_GHOSTS;
+        this.BLOCK_SIZE = BLOCK_SIZE;
+        this.screenData = screenData;
+        this.ghost_x = ghost_x;
+        this.ghost_y = ghost_y;
+        this.ghost_dx = ghost_dx;
+        this.ghost_dy = ghost_dy;
+        this.dx = dx;
+        this.dy = dy;
+        this.ghostSpeed = ghostSpeed;
+        loadImages();
+    }
+
+
+    private void loadImages() {
+        ghost = new ImageIcon("C:\\Users\\simeo\\Downloads\\ghost.gif").getImage();
+    }
+    
+
+    public void move() {
+      
+        int pos;
+        int count;
+        for (int i = 0; i < N_GHOSTS; i++) {        	
+        	
+            if (ghost_x[i] % BLOCK_SIZE == 0 && ghost_y[i] % BLOCK_SIZE == 0) {
+                pos = ghost_x[i] / BLOCK_SIZE + N_GHOSTS * (int) (ghost_y[i] / BLOCK_SIZE);
+
+                count = 0;
+
+                if ((screenData[pos] & 1) == 0 && ghost_dx[i] != 1) {
+                    dx[count] = -1;
+                    dy[count] = 0;
+                    count++;
+                }
+
+                if ((screenData[pos] & 2) == 0 && ghost_dy[i] != 1) {
+                    dx[count] = 0;
+                    dy[count] = -1;
+                    count++;
+                }
+
+                if ((screenData[pos] & 4) == 0 && ghost_dx[i] != -1) {
+                    dx[count] = 1;
+                    dy[count] = 0;
+                    count++;
+                }
+
+                if ((screenData[pos] & 8) == 0 && ghost_dy[i] != -1) {
+                    dx[count] = 0;
+                    dy[count] = 1;
+                    count++;
+                }
+
+                if (count == 0 || (screenData[pos] & 15) == 15) {
+                    if ((screenData[pos] & 15) == 15) {
+                        ghost_dx[i] = 0;
+                        ghost_dy[i] = 0;
+                    } else {
+                        ghost_dx[i] = -ghost_dx[i];
+                        ghost_dy[i] = -ghost_dy[i];
+                    }
+                } else {
+                    count = (int) (Math.random() * count);
+                    if (count > 3) {
+                        count = 3;
+                    }
+                    ghost_dx[i] = dx[count];
+                    ghost_dy[i] = dy[count];
+                }
+            }
+            ghost_x[i] = ghost_x[i] + (ghost_dx[i] * ghostSpeed[i]);
+            ghost_y[i] = ghost_y[i] + (ghost_dy[i] * ghostSpeed[i]);
+            
+        }
+    }
+
+    public void draw(Graphics2D g2d, int[] x, int[] y) {
+    	for (int i = 0; i < N_GHOSTS; i++) {
+        g2d.drawImage(ghost, x[i], y[i], null);
+    	}
+    }
+}

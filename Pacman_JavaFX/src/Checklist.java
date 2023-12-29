@@ -19,3 +19,6 @@
 //21. Spelaren skall kunna gå ut om den har 5 nycklar och därmed få extra poäng samt ett nytt liv och
 //starta om på nytt - PRIO 3
 //22. Spelet skall ha bakgrundsmusik – PRIO 
+
+
+// Dagens problem: Fixa så att pacman klassen är utanför main och funkar

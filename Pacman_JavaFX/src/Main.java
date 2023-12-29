@@ -1,20 +1,19 @@
 
 import javax.swing.JFrame;
 
-public class Pacman extends JFrame{
+public class Main extends JFrame{
 
-	public Pacman() {
+	public Main() {
 		add(new Model());
 	}
 	
-	
 	public static void main(String[] args) {
-		Pacman pac = new Pacman();
-		pac.setVisible(true);
-		pac.setTitle("Pacman");
-		pac.setSize(496,545);
-		pac.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		pac.setLocationRelativeTo(null);
+		Main pacman = new Main();
+		pacman.setVisible(true);
+		pacman.setTitle("Pacman");
+		pacman.setSize(496,545);
+		pacman.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		pacman.setLocationRelativeTo(null);
 		
 	}
 
