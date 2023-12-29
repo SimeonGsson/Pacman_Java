@@ -4,11 +4,11 @@ import javax.swing.ImageIcon;
 
 public class Ghost {
     private int[] ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed;
-    private int BLOCK_SIZE, N_GHOSTS;
+    private int BLOCK_SIZE, N_GHOSTS, N_BLOCKS;
     private short[] screenData;
     private Image ghost;
 
-    public Ghost(short[] screenData, int N_GHOSTS, int BLOCK_SIZE, int[] ghost_x, int[] ghost_y, int[] ghost_dx, int[] ghost_dy, int[] dx, int[] dy, int[] ghostSpeed) {
+    public Ghost(short[] screenData, int N_BLOCKS, int N_GHOSTS, int BLOCK_SIZE, int[] ghost_x, int[] ghost_y, int[] ghost_dx, int[] ghost_dy, int[] dx, int[] dy, int[] ghostSpeed) {
         this.N_GHOSTS = N_GHOSTS;
         this.BLOCK_SIZE = BLOCK_SIZE;
         this.screenData = screenData;
@@ -16,6 +16,7 @@ public class Ghost {
         this.ghost_y = ghost_y;
         this.ghost_dx = ghost_dx;
         this.ghost_dy = ghost_dy;
+        this.N_BLOCKS = N_BLOCKS;
         this.dx = dx;
         this.dy = dy;
         this.ghostSpeed = ghostSpeed;
@@ -29,14 +30,13 @@ public class Ghost {
     
 
     public void move() {
-      
         int pos;
         int count;
-        for (int i = 0; i < N_GHOSTS; i++) {        	
+        for (int i = 0; i < N_GHOSTS; i++) {   
         	
             if (ghost_x[i] % BLOCK_SIZE == 0 && ghost_y[i] % BLOCK_SIZE == 0) {
-                pos = ghost_x[i] / BLOCK_SIZE + N_GHOSTS * (int) (ghost_y[i] / BLOCK_SIZE);
-
+                pos = ghost_x[i] / BLOCK_SIZE + N_BLOCKS * (int) (ghost_y[i] / BLOCK_SIZE); // Koordinaten för positionen
+ 
                 count = 0;
 
                 if ((screenData[pos] & 1) == 0 && ghost_dx[i] != 1) {

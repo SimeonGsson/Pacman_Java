@@ -45,57 +45,6 @@ public class Model extends JPanel implements ActionListener{
 	private Pacman pacmanclass;
 	private short [] selectedMap;
 
-//	private final short levelData1[] = {
-//			19, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
-//			17, 16, 16, 16, 16, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			25, 24, 24, 24, 28, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			0,  0,  0,  0,  0,  0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			19, 18, 18, 18, 18, 18, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24, 24, 20,
-//			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
-//			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
-//			17, 16, 16, 16, 24, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 18, 18, 18, 18, 18, 18, 18, 18, 18, 20,
-//			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 28
-//	};
-//
-//	private final short levelData2[] = {
-//			19, 18, 18, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
-//			17, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 24, 28, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			21,  0,  0,  0,  17,  16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 18, 18, 18, 16, 16, 16, 16, 16, 16, 24, 24, 24, 24, 24, 24, 24, 24, 24, 20,
-//			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
-//			17, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
-//			17, 16, 16, 16, 24, 16, 16, 16, 16, 20, 0,  0,  0,   0, 0,  0,  0,  0, 0, 21,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 18, 18, 18, 18, 18, 18, 18, 18, 18, 20,
-//			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			17, 24, 24, 28, 0, 25, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20,
-//			21, 0,  0,  0,  0,  0,  0,   0, 17, 16, 16, 16, 16, 16, 16, 16, 24, 24, 24, 20,
-//			17, 18, 18, 22, 0, 19, 18, 18, 16, 16, 16, 16, 16, 16, 16, 20, 0, 0, 0, 21,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 19, 18, 20,
-//			17, 16, 16, 20, 0, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 20, 0, 17, 16, 20,
-//			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 26, 24, 24, 28
-//	};
-//	// 0 = vägg, 1 = vägg till vänster, 2 = tak vägg, 4 = vägg till höger, 8 = golv vägg, 16 = ätbara platser
-//	// Gäller att plussa ihop dem för att få dem att fungera
-
-//	GameMap mapOne = new GameMap(20, levelData1);
-//	GameMap mapTwo = new GameMap(20, levelData2);
-
 	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
 	private final int maxSpeed = 6; 
 
@@ -110,10 +59,11 @@ public class Model extends JPanel implements ActionListener{
 	public Model() {
 		loadImages();
 		initVariables();
-		gameMap = new GameMap(N_BLOCKS, screenData);
-		pacmanclass = new Pacman(screenData, N_BLOCKS, this, ghost_x, ghost_y, dying, N_GHOSTS, inGame);
-		ghostclass = new Ghost(screenData, N_GHOSTS, BLOCK_SIZE, ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed);
 		addKeyListener(new TAdapter());
+		gameMap = new GameMap(N_BLOCKS, screenData);
+		selectedMap = gameMap.getMapOne(); // Dehär blir default map så att det funkar att välja mellan två olika
+		pacmanclass = new Pacman(screenData, N_BLOCKS, this, ghost_x, ghost_y, dying, N_GHOSTS, inGame);
+		ghostclass = new Ghost(screenData, N_BLOCKS, N_GHOSTS, BLOCK_SIZE, ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed);
 		setFocusable(true);
 		initGame();
 	}
@@ -246,7 +196,6 @@ public class Model extends JPanel implements ActionListener{
 	private void initGame() { // Spelet initieras - sätt ut startvärden som ska återställas vid spelstart
 		lives = 3;
 		score = 0;
-		selectedMap = gameMap.getMapOne(); // Dehär e default map
 		initLevel();
 		N_GHOSTS = 4;
 		currentSpeed = 2; // Pacmans hastighet initieras

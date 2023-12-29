@@ -57,7 +57,8 @@ public class Pacman {
 				model.incrementScore();
 				//		System.out.println("Eaten a food pellet at position " + pos + ". New screenData value: " + screenData[pos]);
 			}
-
+			
+			// Denna metod kollar om det är en vägg eller ej
 			if (req_dx != 0 || req_dy != 0) {
 				if (!((req_dx == -1 && req_dy == 0 && (ch & 1) != 0)
 						|| (req_dy == 1 && req_dy == 0 && (ch & 4) != 0)
@@ -77,7 +78,7 @@ public class Pacman {
 				dy = 0;
 			}
 		}
-		// This shiet works now
+		// This shiet works now - Kollar efter en kollision mellan spöke och mr pac
 		for (int i = 0; i < N_GHOSTS; i++) {
 			if (x > (ghost_x[i] - 12) && x < (ghost_x[i] + 12)
 					&& y > (ghost_y[i] - 12) && y < (ghost_y[i] + 12)
