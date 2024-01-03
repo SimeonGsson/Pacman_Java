@@ -4,25 +4,24 @@ import java.awt.Image;
 import javax.swing.ImageIcon;
 
 public class Pacman {
-	private int x, y, dx, dy;
-	private int req_dx, req_dy;
+	private int x, y, dx, dy, req_dx, req_dy, N_GHOSTS;
 	private final int BLOCK_SIZE;
-	private final int PACMAN_SPEED;
-	private short[] screenData;
+	private int PACMAN_SPEED;
 	private final int N_BLOCKS;
 	private Model model;
-	private Image up, down, left, right;
+	private Image up, down, left, right, fireMode;
+	private short[] screenData;
 	private int[] ghost_x;
 	private int[] ghost_y;
 	private boolean dying;
 	private boolean inGame;
-	private int N_GHOSTS;
+	private boolean pacmanEatingMode;
 
 	public Pacman(short[] screenData, int N_BLOCKS, Model model, int[] ghost_x, int[] ghost_y, boolean dying, int N_GHOSTS, boolean inGame) {
 		this.screenData = screenData;
 		this.N_BLOCKS = N_BLOCKS;
 		this.BLOCK_SIZE = 24;
-		this.PACMAN_SPEED = 4;
+		this.PACMAN_SPEED = 3;
 		this.model = model;
 		this.ghost_x = ghost_x;
 		this.ghost_y = ghost_y;
@@ -31,6 +30,7 @@ public class Pacman {
 		this.N_GHOSTS = N_GHOSTS;
 		this.x = 17 * BLOCK_SIZE; 
 		this.y = 17 * BLOCK_SIZE; 
+		pacmanEatingMode = false;
 		loadImages();
 	}
 
@@ -39,8 +39,10 @@ public class Pacman {
 		up = new ImageIcon("C:\\Users\\simeo\\Downloads\\up.gif").getImage();
 		right = new ImageIcon("C:\\Users\\simeo\\Downloads\\right.gif").getImage();
 		left = new ImageIcon("C:\\Users\\simeo\\Downloads\\left.gif").getImage();
+		fireMode = new ImageIcon("C:\\Users\\simeo\\Downloads\\y8 (1).gif\\").getImage();
 	}
-	
+
+
 	public void move() {
 
 		int pos;
@@ -50,14 +52,14 @@ public class Pacman {
 		if (x % BLOCK_SIZE == 0 && y % BLOCK_SIZE == 0) {
 			pos = x / BLOCK_SIZE + N_BLOCKS * (int) (y / BLOCK_SIZE);
 			ch = screenData[pos];
-			
+
 
 			if ((ch & 16) !=0) {
 				screenData[pos] = (short) (ch & 15);
 				model.incrementScore();
 				//		System.out.println("Eaten a food pellet at position " + pos + ". New screenData value: " + screenData[pos]);
 			}
-			
+
 			// Denna metod kollar om det är en vägg eller ej
 			if (req_dx != 0 || req_dy != 0) {
 				if (!((req_dx == -1 && req_dy == 0 && (ch & 1) != 0)
@@ -66,6 +68,23 @@ public class Pacman {
 						|| (req_dx == 0 && req_dy == 1 && (ch & 8) != 0))) {
 					dx = req_dx;
 					dy = req_dy;
+				}
+			}
+
+			if (x == model.get_randomCoordinate_x() * BLOCK_SIZE && y == model.get_randomCoordinate_y() * BLOCK_SIZE)  {
+				pacmanEatingMode = true;
+				model.set_randomCoordinate_x(21);
+				System.out.println("PacmanEatingMode");
+				// Gör så detta endast gäller i 30 sekunder
+			} else if (x == model.get_randomCoordinateTwo_x() * BLOCK_SIZE && y == model.get_randomCoordinateTwo_y() * BLOCK_SIZE) {
+				model.addLife();
+				model.set_randomCoordinateTwo_x(21);
+				System.out.println("AddLife");
+			} else if (x == model.get_randomCoordinateThree_x() * BLOCK_SIZE && y == model.get_randomCoordinateThree_y() * BLOCK_SIZE) {
+				if (PACMAN_SPEED <= 3) {
+					increaseSpeed();
+					model.set_randomCoordinateThree_x(21);
+					System.out.println("IncreaseSpeed");
 				}
 			}
 
@@ -84,29 +103,73 @@ public class Pacman {
 					&& y > (ghost_y[i] - 12) && y < (ghost_y[i] + 12)
 					&& inGame) {
 				//System.out.println("Collaps between pacman and ghost.");
-				dying = true;
-				setDeath(dying);
+				// If Pacman is in eating mode, eat the ghost instead of dying
+				if (pacmanEatingMode()) {
+					eatGhost(i); // This is a new method you will need to implement
+				} else {
+					//System.out.println("Collaps between pacman and ghost.");
+					dying = true;
+					setDeath(dying);
+				}
 			}
 		}
-
 		x = x + PACMAN_SPEED * dx;
 		y = y + PACMAN_SPEED * dy;
-
 	}
-
 
 	public void drawPac(Graphics2D g2d) {
-		if (req_dx == -1) {
-			g2d.drawImage(left, x + 1, y + 1, model );
-		} else if (req_dx == 1) {
-			g2d.drawImage(right, x + 1, y + 1, model);
-		} else if (req_dy == -1) {
-			g2d.drawImage(up, x + 1, y + 1, model);
+		if (pacmanEatingMode == false) {
+			if (req_dx == -1) {
+				g2d.drawImage(left, x + 1, y + 1, model );
+			} else if (req_dx == 1) {
+				g2d.drawImage(right, x + 1, y + 1, model);
+			} else if (req_dy == -1) {
+				g2d.drawImage(up, x + 1, y + 1, model);
+			} else {
+				g2d.drawImage(down, x + 1, y + 1, model);
+			}       
 		} else {
-			g2d.drawImage(down, x + 1, y + 1, model);
-		}       
+			if (req_dx == -1) {
+				g2d.drawImage(fireMode, x - 12, y - 15, model );
+				g2d.drawImage(left, x + 1, y + 1, model );
+			} else if (req_dx == 1) {
+				g2d.drawImage(fireMode, x - 12, y - 15, model );
+				g2d.drawImage(right, x + 1, y + 1, model);
+			} else if (req_dy == -1) {
+				g2d.drawImage(fireMode, x - 12, y - 15, model );
+				g2d.drawImage(up, x + 1, y + 1, model);
+			} else {
+				g2d.drawImage(fireMode, x - 12, y - 15, model );
+				g2d.drawImage(down, x + 1, y + 1, model);
+			}   		
+		}
 	}
-	
+
+	public void updateNumGhosts(int numGhosts) {
+		this.N_GHOSTS = numGhosts;
+	}
+
+	public void eatGhost(int ghostIndex) {
+		// Ät spöket
+		model.getGhostClass().removeGhost(ghostIndex);
+
+		// Uppdatera antalet spöken
+		updateNumGhosts(model.getGhostClass().getNumGhosts());
+
+		// Öka poäng med 10
+		model.incrementScoreByTen();
+	}
+
+
+	public void increaseSpeed() {
+		// Fixa så att detta endast gäller för 5 sekunder
+		PACMAN_SPEED += 1; //
+	}
+
+	public boolean pacmanEatingMode() {
+		return pacmanEatingMode;
+	}	
+
 
 	public void setReq_dx(int req_dx) {
 		this.req_dx = req_dx;
@@ -115,40 +178,44 @@ public class Pacman {
 	public void setReq_dy(int req_dy) {
 		this.req_dy = req_dy;
 	}
-	
+
 	public void setY(int y) {
 		this.y = y;
 	}
-	
+
 	public void setX(int x) {
 		this.x = x;
 	}
-	
+
 	public void setDX(int dx) {
 		this.dx = dx;
 	}
-	
+
 	public void setDY(int dy) {
 		this.dy = dy;
 	}
-	
+
 	public void setReqDY(int reqDY) {
 		this.req_dy = reqDY;
 	}
-	
+
 	public void setReqDX(int reqDX) {
 		this.req_dx = reqDX;
 	}
-	
+
 	public void resetDeath() {
-	    dying = false;
+		dying = false;
 	}
-	
+
 	public void setDeath(boolean dying) {
 		this.dying = dying;
 	}
-	
+
 	public boolean getDeath() {
 		return dying;
+	}
+
+	public boolean getPacmanEatingMode() {
+		return pacmanEatingMode;
 	}
 }
