@@ -1,7 +1,10 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
+import javax.swing.Timer;
 
 public class Pacman {
 	private int x, y, dx, dy, req_dx, req_dy, N_GHOSTS;
@@ -16,6 +19,9 @@ public class Pacman {
 	private boolean dying;
 	private boolean inGame;
 	private boolean pacmanEatingMode;
+	private Timer pacmanEatingModeTimer;
+	private Timer increaseSpeed;
+
 
 	public Pacman(short[] screenData, int N_BLOCKS, Model model, int[] ghost_x, int[] ghost_y, boolean dying, int N_GHOSTS, boolean inGame) {
 		this.screenData = screenData;
@@ -74,7 +80,17 @@ public class Pacman {
 			if (x == model.get_randomCoordinate_x() * BLOCK_SIZE && y == model.get_randomCoordinate_y() * BLOCK_SIZE)  {
 				pacmanEatingMode = true;
 				model.set_randomCoordinate_x(21);
-				System.out.println("PacmanEatingMode");
+				System.out.println("PacmanEatingMode aktiverad");
+				pacmanEatingModeTimer = new Timer(10000, new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						pacmanEatingMode = false;
+						System.out.println("PacmanEatingMode är över");
+					}
+				});
+				pacmanEatingModeTimer.setRepeats(false);
+				pacmanEatingModeTimer.start();
+
 				// Gör så detta endast gäller i 30 sekunder
 			} else if (x == model.get_randomCoordinateTwo_x() * BLOCK_SIZE && y == model.get_randomCoordinateTwo_y() * BLOCK_SIZE) {
 				model.addLife();
@@ -164,7 +180,30 @@ public class Pacman {
 	public void increaseSpeed() {
 		// Fixa så att detta endast gäller för 5 sekunder
 		PACMAN_SPEED += 1; //
+		System.out.println("SpeedMode aktiverad");
+		increaseSpeed = new Timer(10000, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if ((x % BLOCK_SIZE == 0) && (y % BLOCK_SIZE == 0)) {
+					PACMAN_SPEED -= 1;
+					dx = 0;
+					dy = 0;
+					req_dx = 0;
+					req_dy = 0;
+					move();
+					System.out.println("SpeedMode är över. Pacman stannar upp.");
+				} else {
+					// If not aligned, postpone the speed decrease
+					increaseSpeed.setInitialDelay(100); // Small delay before checking again
+					increaseSpeed.setRepeats(false); // Ensure it doesn't repeat indefinitely
+					increaseSpeed.restart(); // Restart the timer to check alignment again
+				}
+			}
+		});
+		increaseSpeed.setRepeats(false);
+		increaseSpeed.start();
 	}
+
 
 	public boolean pacmanEatingMode() {
 		return pacmanEatingMode;

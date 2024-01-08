@@ -27,10 +27,10 @@ public class Model extends JPanel implements ActionListener{
 	private final int BLOCK_SIZE = 24; // Storleken på rutorna
 	private final int N_BLOCKS = 20; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
 	private final int SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE; // rutornas totala yta. Hur stor yta kommer dessa rutor ta upp? Spelplanen kommer dock vara 15x15
-	private final int MAX_GHOSTS = 12; // Totala antalet spöken som kan finns med
+	private final int MAX_GHOSTS = 20; // Totala antalet spöken som kan finns med
 	private final int PACMAN_SPEED = 4; // Hur snabb pacman ska vara från början - ta bort final om denna ska ändras under spelets gång
 
-	private int N_GHOSTS = 3; // Antalet spöken som finns med från början
+	private int N_GHOSTS = 6; // Antalet spöken som finns med från början
 	private int lives, score;
 	private int [] dx, dy; // Behövs för positionen för spökena
 	private int [] ghost_x, ghost_y, ghost_dx, ghost_dy, ghostSpeed; // Behövs också för att veta antalet och positionen av spökena 
@@ -224,35 +224,49 @@ public class Model extends JPanel implements ActionListener{
 	private void changeCoordinates() {
 		System.out.println("ChangeCoordinates");
 	    int[][] coordinates = {
-	    		{18, 14}, {2, 14}, {5, 5}, {18, 14}, {13, 17}, {4, 7} ,{3, 16}, {3, 9}, {3, 12}, {3, 12}, {12, 3}, {8, 3}, {7, 2}, {12, 4}, {0, 0}, 
-	    		{17, 14}, {3, 14}, {3, 5}, {12, 14}, {11, 17}, {6, 7} ,{1, 16}, {2, 9}, {3, 6}, {10, 12}, {19, 3}, {7, 3}, {2, 2}, {1, 1}, {0, 17}, 
+	    		{18, 14}, {2, 14}, {5, 5}, {18, 14}, {13, 18}, {2, 7} ,{3, 16}, {4, 9}, {3, 12}, {3, 12}, {12, 3}, {8, 3}, {7, 2}, {12, 4}, {0, 0}, 
+	    		{17, 15}, {3, 14}, {3, 5}, {12, 14}, {11, 17}, {6, 7} ,{1, 16}, {2, 9}, {3, 6}, {10, 12}, {19, 3}, {7, 3}, {2, 2}, {1, 1}, {0, 17}, 
 	    };
 
 	    Random rand = new Random();
+	    
+	    // Här tilldelar jag random koordinater för varje powerup och jag la även till en checker ifall någon av dem skulle hamna på samma koordinat så att de då byter plats.
+
 	    int randomIndex = rand.nextInt(coordinates.length);
 	    randomCoordinate_x = coordinates[randomIndex][0];
 	    randomCoordinate_y = coordinates[randomIndex][1];
 	    
-	    int randomIndexTwo = rand.nextInt(coordinates.length);
+	    int randomIndexTwo;
+	    do {
+	        randomIndexTwo = rand.nextInt(coordinates.length);
+	    } while (coordinates[randomIndexTwo][0] == randomCoordinate_x && coordinates[randomIndexTwo][1] == randomCoordinate_y);
 	    randomCoordinateTwo_x = coordinates[randomIndexTwo][0];
 	    randomCoordinateTwo_y = coordinates[randomIndexTwo][1];
 	    
-	    int randomIndexThree = rand.nextInt(coordinates.length);
+	    int randomIndexThree;
+	    do {
+	        randomIndexThree = rand.nextInt(coordinates.length);
+	    } while (
+	        (coordinates[randomIndexThree][0] == randomCoordinate_x && coordinates[randomIndexThree][1] == randomCoordinate_y) ||
+	        (coordinates[randomIndexThree][0] == randomCoordinateTwo_x && coordinates[randomIndexThree][1] == randomCoordinateTwo_y)
+	    );
 	    randomCoordinateThree_x = coordinates[randomIndexThree][0];
 	    randomCoordinateThree_y = coordinates[randomIndexThree][1];
-	    
 	}
 
 	private void drawEatPowerup(Graphics2D g2d) {
 	    g2d.drawImage(elixir, randomCoordinate_x * BLOCK_SIZE, randomCoordinate_y * BLOCK_SIZE, this);
+	    System.out.println("Eatpowerup coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
 	}
 	
 	private void drawHealthPowerup(Graphics2D g2d) {
 		g2d.drawImage(heart, randomCoordinateTwo_x * BLOCK_SIZE, randomCoordinateTwo_y * BLOCK_SIZE, this);
+		System.out.println("Health coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
 	}
 	
 	private void drawSpeedPowerup(Graphics2D g2d) {
 		g2d.drawImage(speed, randomCoordinateThree_x * BLOCK_SIZE, randomCoordinateThree_y * BLOCK_SIZE, this);
+		System.out.println("Speed coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
 	}
 
 
