@@ -10,6 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.ImageIcon;
@@ -21,8 +24,8 @@ public class Model extends JPanel implements ActionListener{
 	private Dimension d; // Spelplanens storlek
 	private final Font smallFont = new Font("Arial", Font.BOLD, 17); // Font för texten
 	private final Font bigFont = new Font("Arial", Font.BOLD, 25); // Font för GameOver
-	private boolean inGame = false;
-	private boolean dying = false;
+	private boolean inGame = false; // inGame används för att avgöra om GameOverskärmen eller Introskärmen ska visas. När den är true så betyder det att spelet är igång
+	private boolean dying = false; // dying används i death funktionen som hanterar vad som händer när pacman blir käkad av spöken
 
 	private final int BLOCK_SIZE = 24; // Storleken på rutorna
 	private final int N_BLOCKS = 20; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
@@ -30,7 +33,7 @@ public class Model extends JPanel implements ActionListener{
 	private final int MAX_GHOSTS = 20; // Totala antalet spöken som kan finns med
 	private final int PACMAN_SPEED = 4; // Hur snabb pacman ska vara från början - ta bort final om denna ska ändras under spelets gång
 
-	private int N_GHOSTS = 6; // Antalet spöken som finns med från början
+	private int N_GHOSTS = 8; // Antalet spöken som finns med från början
 	private int lives, score;
 	private int [] dx, dy; // Behövs för positionen för spökena
 	private int [] ghost_x, ghost_y, ghost_dx, ghost_dy, ghostSpeed; // Behövs också för att veta antalet och positionen av spökena 
@@ -41,37 +44,35 @@ public class Model extends JPanel implements ActionListener{
 	private int pacman_x, pacman_y, pacman_dx, pacman_dy; // Delta grejerna är riktningen för pacman som åberopas, de andra är positionen för pacman
 	private int req_dx, req_dy, randomCoordinate_x, randomCoordinate_y, randomCoordinateTwo_x, randomCoordinateTwo_y, randomCoordinateThree_x, randomCoordinateThree_y;
 
-	private GameMap gameMap;
-	private Ghost ghostclass;
-	private Pacman pacmanclass;
+	private GameMap gameMap; // Vi skapar en instans av klassen med banorna. Sedan kommer vi använda selectedMap för att kopiera den bana som ska användas. Vi börjar sätta startvärdet till bana ett men sedan går det att välja mellan ett och två
+	private Ghost ghostclass; // Vi skapar en instans av spökklassen
+	private Pacman pacmanclass; // VI skapar en instans av pacmanklassen
 	private short [] selectedMap;
 
 	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
-	private final int maxSpeed = 6; 
+	private final int maxSpeed = 8; // 
 
-	private int currentSpeed = 2; // Pacmands hastighet från början (behöver denna verkligen vara satt till 3? Med tanke på att den ändå kan byta värde när den initieras?
-	private short [] screenData; // Tar in datan för att rita om spelet är något händer
+	private int currentSpeed = 2; // Pacmands hastighet från början
+	private short [] screenData; // Denna kommer ta in datan för hur banan är utformad och kommer användas i en funktion för rita om spelet när något händer
 	private Timer timer;
 
 	private boolean gameOver = false;
 	private boolean gameStarted = false;
+	
+	private static final int MAX_HIGH_SCORES = 5;
+    private List<Integer> highScores = new ArrayList<>(); // Listan för att lagra bästa resultat
 
 
 	public Model() {
-		loadImages();
-		initVariables();
-		addKeyListener(new TAdapter());
-		gameMap = new GameMap(N_BLOCKS, screenData);
+		loadImages(); // Laddar upp bilderna till bildvariablerna ghost, heart, elixir och speed
+		initVariables(); // Initierar variablerna och sätter startvärden
+		addKeyListener(new TAdapter()); // Skapar en ny klass för tangentbordslogik
+		gameMap = new GameMap(N_BLOCKS, screenData); //Skapar en ny bana genom att kopiera en av banorna från GameMap
 		selectedMap = gameMap.getMapOne(); // Dehär blir default map så att det funkar att välja mellan två olika
-		pacmanclass = new Pacman(screenData, N_BLOCKS, this, ghost_x, ghost_y, dying, N_GHOSTS, inGame);
-		ghostclass = new Ghost(screenData, N_BLOCKS, N_GHOSTS, BLOCK_SIZE, ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed);
-		setFocusable(true);
-		initGame();
-	}
-
-	public short[] getCurrentMap(short[] currentMap) {
-		selectedMap = currentMap;
-		return selectedMap;
+		pacmanclass = new Pacman(screenData, N_BLOCKS, this, ghost_x, ghost_y, dying, N_GHOSTS, inGame); // Skapar en pacman klass och skickar in startvärden
+		ghostclass = new Ghost(screenData, N_BLOCKS, N_GHOSTS, BLOCK_SIZE, ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed); // Skapar en spök klass och skickar in startvärden
+		setFocusable(true); // 
+		initGame(); // Starta spelet - Startar gameloopen som i sin tur kommer kalla på alla andra viktiga funktioner vardera 40:e millisekund.
 	}
 
 
@@ -82,10 +83,9 @@ public class Model extends JPanel implements ActionListener{
 		speed = new ImageIcon("C:\\Users\\simeo\\Downloads\\sprint_1483660 (1).png").getImage();
 	}
 
-
-	private void initVariables() {
+	private void initVariables() { // Här initierar vi alla variabler som inte är initierade ännu och ger dem ett startvärde
 		screenData = new short[N_BLOCKS * N_BLOCKS];
-		d = new Dimension(500, 540);
+		d = new Dimension(590, 540);
 		ghost_x = new int [MAX_GHOSTS];
 		ghost_dx = new int [MAX_GHOSTS];
 		ghost_y = new int [MAX_GHOSTS];
@@ -96,13 +96,12 @@ public class Model extends JPanel implements ActionListener{
 		timer = new Timer(40, this); // bestämmer hur ofta allt ritas om
 		timer.start();
 		coordinateTimer.start();
-		randomCoordinate_x = 21;
-		randomCoordinate_y = 21;
-		randomCoordinateTwo_x = 21;
-		randomCoordinateTwo_x = 21;
-		randomCoordinateThree_x = 21;
-		randomCoordinateThree_x = 21;
-
+		randomCoordinate_x = 26;
+		randomCoordinate_y = 26;
+		randomCoordinateTwo_x = 26;
+		randomCoordinateTwo_y = 26;
+		randomCoordinateThree_x = 26;
+		randomCoordinateThree_y = 26;
 	}
 
 
@@ -115,7 +114,6 @@ public class Model extends JPanel implements ActionListener{
 		dying = pacmanclass.getDeath();
 		ghostclass.move();
 		checkMaze();
-
 	}
 
 
@@ -133,17 +131,37 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	public void drawScore(Graphics2D g) {
+	public void drawScoreAndLives(Graphics2D g) {
 		g.setFont(smallFont);
 		g.setColor(Color.orange);
-		String s = "Score: " + score;
-		g.drawString(s,  SCREEN_SIZE / 2 + 96, SCREEN_SIZE + 16);
+		String s = "Poäng: " + score;
+		g.drawString(s,  SCREEN_SIZE / 2 + 165, SCREEN_SIZE + 24);
 
 		for (int i = 0; i < lives; i++) {
-			g.drawImage(heart,  i * 28 + 8, SCREEN_SIZE +1, this);
+			g.drawImage(heart,  i * 28 + 8, SCREEN_SIZE + 7 , this);
 		}
 	}
+	
+    public void drawHighScore(Graphics2D g) {
+        g.setFont(smallFont);
+        g.setColor(Color.orange);
+        String s = "Resultat :";
+        g.drawString(s,  SCREEN_SIZE / 2 + 250, SCREEN_SIZE - 450);
 
+        int yPos = SCREEN_SIZE - 430;
+        for (int i = 0; i < Math.min(highScores.size(), 5); i++) {
+            String scoreStr = (i + 1) + ". " + highScores.get(i);
+            g.drawString(scoreStr,  SCREEN_SIZE / 2 + 250, yPos);
+            yPos += 20;
+        }
+    }
+    
+    public void drawPowerUpText(Graphics2D g) {
+    	g.setFont(smallFont);
+        g.setColor(Color.orange);
+        String s = "Aktiverade Powerups :";
+        g.drawString(s,  SCREEN_SIZE / 2 - 100, SCREEN_SIZE + 23);
+    }
 
 	public void drawGameOver(Graphics2D g2d) {
 		g2d.setColor(Color.black);
@@ -157,9 +175,32 @@ public class Model extends JPanel implements ActionListener{
 		g2d.setColor(Color.orange);
 		String s2 = "Tryck SPACE för att starta spelet igen";
 		g2d.drawString(s2, 105, 172);
-
+	}
+	
+	private void drawEatPowerup(Graphics2D g2d) {
+	    g2d.drawImage(elixir, randomCoordinate_x * BLOCK_SIZE, randomCoordinate_y * BLOCK_SIZE, this);
+	//    System.out.println("Eatpowerup coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
+	}
+	
+	private void drawHealthPowerup(Graphics2D g2d) {
+		g2d.drawImage(heart, randomCoordinateTwo_x * BLOCK_SIZE, randomCoordinateTwo_y * BLOCK_SIZE, this);
+	//	System.out.println("Health coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
+	}
+	
+	private void drawSpeedPowerup(Graphics2D g2d) {
+		g2d.drawImage(speed, randomCoordinateThree_x * BLOCK_SIZE, randomCoordinateThree_y * BLOCK_SIZE, this);
+	//	System.out.println("Speed coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
 	}
 
+	public void addScore(int newScore) {
+        if (highScores.size() < MAX_HIGH_SCORES || newScore > highScores.get(highScores.size() - 1)) {
+            highScores.add(newScore);
+            Collections.sort(highScores, Collections.reverseOrder());
+            while (highScores.size() > MAX_HIGH_SCORES) {
+                highScores.remove(highScores.size() - 1);
+            }
+        }
+	}
 
 	public void checkMaze() {
 		int i = 0;
@@ -172,12 +213,18 @@ public class Model extends JPanel implements ActionListener{
 				break;
 			}
 		}
-		// Om det ej finns prickar kvar så har pacman klarat av banan och får då 50 poäng och så börjar det om fast med fler spöken
+		// Om det ej finns prickar kvar så har pacman klarat av banan och får då 500 poäng och så börjar det om fast med fler spöken
 		if (finished) {
-			score += 50;
+			score += 500;
 
-			if (N_GHOSTS < MAX_GHOSTS) {
-				N_GHOSTS++;
+			if (N_GHOSTS * 2 < MAX_GHOSTS) {
+				N_GHOSTS = 2*N_GHOSTS;	
+			} else if (N_GHOSTS + 3 < MAX_GHOSTS) {
+				N_GHOSTS += 3;
+			} else if (N_GHOSTS + 2 < MAX_GHOSTS) {
+				N_GHOSTS += 2;
+			} else if (N_GHOSTS + 1 < MAX_GHOSTS) {
+				N_GHOSTS += 1;
 			}
 			if (getCurrentSpeed() < maxSpeed) {
 				setCurrentSpeed(getCurrentSpeed() + 1);
@@ -187,45 +234,32 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	private void death() {
+	private void death() { // Denna funktion körs när pacman blir käkad. 
 		lives--;
 
-		if (lives == 0) {
-			gameOver = true;
-			inGame = false;
+		if (lives == 0) { // om du tappar alla dina liv så skickar vi poängen till resultat tavlan.
+			addScore(score);
+			gameOver = true; // Sedan så kör vi gameover skärmen.
+			inGame = false; // Och slutligen så stänger vi av inGame logiken
 		}
-
-		continueLevel();
+		continueLevel();  // Denna kör vi så att spelet inte ska ta slut bara för att man tappar ett liv om man har fler liv.
 	}
 
 
-	public void incrementScore() {
-		score++;
-	}
-
-	public void incrementScoreByTen() {
-		score += 10;
-	}
-
-	public void addLife() {
-		if (lives <= 4) {
-		lives++;
-		}
-	}
-
+	// Timer för att hålla koll så att changeCoordinates körs efter en viss specificerad tid
 	Timer coordinateTimer = new Timer(10000, new ActionListener() {
 	    @Override
-	    public void actionPerformed(ActionEvent e) {
+	    public void actionPerformed(ActionEvent e) { // När timern har gått ut så får powerupsen nya koordinater
 	        changeCoordinates();
 	    }
 	});
 
-	// Method to change coordinates
+	// Funktion för att byta koordinater för powerups
 	private void changeCoordinates() {
-		System.out.println("ChangeCoordinates");
-	    int[][] coordinates = {
-	    		{18, 14}, {2, 14}, {5, 5}, {18, 14}, {13, 18}, {2, 7} ,{3, 16}, {4, 9}, {3, 12}, {3, 12}, {12, 3}, {8, 3}, {7, 2}, {12, 4}, {0, 0}, 
-	    		{17, 15}, {3, 14}, {3, 5}, {12, 14}, {11, 17}, {6, 7} ,{1, 16}, {2, 9}, {3, 6}, {10, 12}, {19, 3}, {7, 3}, {2, 2}, {1, 1}, {0, 17}, 
+	    int[][] coordinates = {	
+	    		{3, 16}, {9, 3}, {7, 2},
+	    		{18, 14}, {2, 14}, {5, 5}, {18, 14}, {13, 18}, {2, 7} ,{3, 16}, {3, 9}, {3, 12}, {3, 12}, {12, 3}, {9, 3}, {7, 2}, {12, 4}, {2, 4}, 
+	    		{17, 15}, {3, 14}, {3, 5}, {11, 14}, {11, 17}, {6, 7} ,{2, 16}, {2, 9}, {3, 6}, {5, 12}, {19, 3}, {7, 3}, {2, 2}, {3, 2}, {2, 17}, 
 	    };
 
 	    Random rand = new Random();
@@ -254,27 +288,12 @@ public class Model extends JPanel implements ActionListener{
 	    randomCoordinateThree_y = coordinates[randomIndexThree][1];
 	}
 
-	private void drawEatPowerup(Graphics2D g2d) {
-	    g2d.drawImage(elixir, randomCoordinate_x * BLOCK_SIZE, randomCoordinate_y * BLOCK_SIZE, this);
-	    System.out.println("Eatpowerup coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
-	}
-	
-	private void drawHealthPowerup(Graphics2D g2d) {
-		g2d.drawImage(heart, randomCoordinateTwo_x * BLOCK_SIZE, randomCoordinateTwo_y * BLOCK_SIZE, this);
-		System.out.println("Health coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
-	}
-	
-	private void drawSpeedPowerup(Graphics2D g2d) {
-		g2d.drawImage(speed, randomCoordinateThree_x * BLOCK_SIZE, randomCoordinateThree_y * BLOCK_SIZE, this);
-		System.out.println("Speed coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
-	}
-
 
 	private void initGame() { // Spelet initieras - sätt ut startvärden som ska återställas vid spelstart
-		lives = 3;
-		score = 0;
-		initLevel();
-		N_GHOSTS = 3;
+		lives = 1; // Startar med ett liv
+		score = 0; // Startar med 0 poäng.
+		initLevel(); // initiera banan
+		N_GHOSTS = 8; // Startar med åtta spöken
 		setCurrentSpeed(2); // Pacmans hastighet initieras
 	}
 
@@ -328,7 +347,9 @@ public class Model extends JPanel implements ActionListener{
 		g2d.fillRect(0, 0, d.width, d.height);
 
 		gameMap.draw(g2d);
-		drawScore(g2d);
+		drawScoreAndLives(g2d);
+		drawHighScore(g2d);
+		drawPowerUpText(g2d);
 		pacmanclass.drawPac(g2d);
 		ghostclass.draw(g2d, ghost_x, ghost_y);
 		drawEatPowerup(g2d);
@@ -348,7 +369,8 @@ public class Model extends JPanel implements ActionListener{
 		g2d.dispose();
 	}
 
-
+	// Här styrs tangentbordstrycken
+	
 	class TAdapter extends KeyAdapter {
 		public void keyPressed(KeyEvent e) {
 			int key = e.getKeyCode();
@@ -401,6 +423,19 @@ public class Model extends JPanel implements ActionListener{
 		}
 	}
 
+	public void incrementScoreByFive() { // Denna poängökning körs när man äter ett spöke
+		score += 5;
+	}
+
+	public void addLife() { // Säger sig självt. Om du har färre än fem liv så ökar du med ett liv när du tar den powerupen
+		if (lives <= 4) {
+		lives++;
+		}
+	}
+	
+	public void incrementScore() {  // Ökar med ett poäng, används för att registrera poäng för prickar som blir käkade.
+		score++;
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -413,6 +448,11 @@ public class Model extends JPanel implements ActionListener{
 		return screenData;
 	}
 
+	public short[] getCurrentMap(short[] currentMap) {
+		selectedMap = currentMap;
+		return selectedMap;
+	}
+	
 	public int getCurrentSpeed() {
 		return currentSpeed;
 	}

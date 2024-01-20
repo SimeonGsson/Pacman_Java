@@ -1,6 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
@@ -48,7 +49,7 @@ public class Pacman {
 		fireMode = new ImageIcon("C:\\Users\\simeo\\Downloads\\y8 (1).gif\\").getImage();
 	}
 
-
+	
 	public void move() {
 
 		int pos;
@@ -79,7 +80,8 @@ public class Pacman {
 
 			if (x == model.get_randomCoordinate_x() * BLOCK_SIZE && y == model.get_randomCoordinate_y() * BLOCK_SIZE)  {
 				pacmanEatingMode = true;
-				model.set_randomCoordinate_x(21);
+				model.set_randomCoordinate_x(15);
+				model.set_randomCoordinate_y(20);
 				System.out.println("PacmanEatingMode aktiverad");
 				pacmanEatingModeTimer = new Timer(10000, new ActionListener() {
 					@Override
@@ -94,12 +96,13 @@ public class Pacman {
 				// Gör så detta endast gäller i 30 sekunder
 			} else if (x == model.get_randomCoordinateTwo_x() * BLOCK_SIZE && y == model.get_randomCoordinateTwo_y() * BLOCK_SIZE) {
 				model.addLife();
-				model.set_randomCoordinateTwo_x(21);
+				model.set_randomCoordinateTwo_x(30);
 				System.out.println("AddLife");
 			} else if (x == model.get_randomCoordinateThree_x() * BLOCK_SIZE && y == model.get_randomCoordinateThree_y() * BLOCK_SIZE) {
 				if (PACMAN_SPEED <= 3) {
 					increaseSpeed();
-					model.set_randomCoordinateThree_x(21);
+					model.set_randomCoordinateThree_x(14);
+					model.set_randomCoordinateThree_y(20);
 					System.out.println("IncreaseSpeed");
 				}
 			}
@@ -133,6 +136,7 @@ public class Pacman {
 		y = y + PACMAN_SPEED * dy;
 	}
 
+	
 	public void drawPac(Graphics2D g2d) {
 		if (pacmanEatingMode == false) {
 			if (req_dx == -1) {
@@ -161,6 +165,7 @@ public class Pacman {
 		}
 	}
 
+	
 	public void updateNumGhosts(int numGhosts) {
 		this.N_GHOSTS = numGhosts;
 	}
@@ -172,13 +177,13 @@ public class Pacman {
 		// Uppdatera antalet spöken
 		updateNumGhosts(model.getGhostClass().getNumGhosts());
 
-		// Öka poäng med 10
-		model.incrementScoreByTen();
+		// Öka poäng med 5
+		model.incrementScoreByFive();
 	}
 
 
 	public void increaseSpeed() {
-		// Fixa så att detta endast gäller för 5 sekunder
+		// Denna gäller endast 10 sekunder. Det är det vi satt timnen till.
 		PACMAN_SPEED += 1; //
 		System.out.println("SpeedMode aktiverad");
 		increaseSpeed = new Timer(10000, new ActionListener() {
@@ -191,12 +196,11 @@ public class Pacman {
 					req_dx = 0;
 					req_dy = 0;
 					move();
-					System.out.println("SpeedMode är över. Pacman stannar upp.");
+					System.out.println("SpeedMode är över. Pacman stannar upp tills du börjar röra på karaktären igen.");
 				} else {
-					// If not aligned, postpone the speed decrease
-					increaseSpeed.setInitialDelay(100); // Small delay before checking again
-					increaseSpeed.setRepeats(false); // Ensure it doesn't repeat indefinitely
-					increaseSpeed.restart(); // Restart the timer to check alignment again
+					increaseSpeed.setInitialDelay(100); // Denna checker finns med eftersom att det blir strul om pacman står mellan två koordinater
+					increaseSpeed.setRepeats(false); // Checker för att göra så den inte uppdaterar oändligt med gånger
+					increaseSpeed.restart(); // Vi kör om timern för att kika om pacman nu står rätt
 				}
 			}
 		});
@@ -209,6 +213,9 @@ public class Pacman {
 		return pacmanEatingMode;
 	}	
 
+	public Point getPacManLocation() {
+	    return new Point(x, y); 
+	}
 
 	public void setReq_dx(int req_dx) {
 		this.req_dx = req_dx;
