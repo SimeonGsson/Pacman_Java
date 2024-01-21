@@ -1,4 +1,3 @@
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -49,57 +48,59 @@ public class Pacman {
 		fireMode = new ImageIcon("C:\\Users\\simeo\\Downloads\\y8 (1).gif\\").getImage();
 	}
 
-	
-	public void move() {
+
+	public void move() { // Denna funktion hanterar pacmans rörelselogik. Vilket håll går pacman? Finns det en vägg? Käkar pacman en prick? Ska någon powerup aktiveras?
 
 		int pos;
-		short ch;
+		short cellState; // denna variabel representerar nuvarande tillståndet av en cell från banan, dvs vad en specifik koordinat innehåller.
 		inGame = true;
 
-		if (x % BLOCK_SIZE == 0 && y % BLOCK_SIZE == 0) {
+		if (x % BLOCK_SIZE == 0 && y % BLOCK_SIZE == 0) { // Om pacman står på en koordinat och inte mellan två stycken.
 			pos = x / BLOCK_SIZE + N_BLOCKS * (int) (y / BLOCK_SIZE);
-			ch = screenData[pos];
+			cellState = screenData[pos];
 
 
-			if ((ch & 16) !=0) {
-				screenData[pos] = (short) (ch & 15);
+			if ((cellState & 16) !=0) { // Går du på en koordinat med en prick på? Isåfall tar vi bort den pricken och ökar poängen.
+				screenData[pos] = (short) (cellState & 15);
 				model.incrementScore();
-				//		System.out.println("Eaten a food pellet at position " + pos + ". New screenData value: " + screenData[pos]);
 			}
 
 			// Denna metod kollar om det är en vägg eller ej
-			if (req_dx != 0 || req_dy != 0) {
-				if (!((req_dx == -1 && req_dy == 0 && (ch & 1) != 0)
-						|| (req_dy == 1 && req_dy == 0 && (ch & 4) != 0)
-						|| (req_dx == 0 && req_dy == -1 && (ch & 2) != 0)
-						|| (req_dx == 0 && req_dy == 1 && (ch & 8) != 0))) {
-					dx = req_dx;
+			if (req_dx != 0 || req_dy != 0) { // Om pacman inte står still
+				if (!((req_dx == -1 && req_dy == 0 && (cellState & 1) != 0) // 1 för vägg till vänster
+						|| (req_dy == 1 && req_dy == 0 && (cellState & 4) != 0) // fyra för vägg till höger
+						|| (req_dx == 0 && req_dy == -1 && (cellState & 2) != 0) // två för tak
+						|| (req_dx == 0 && req_dy == 1 && (cellState & 8) != 0))) { // åtta för golv
+					dx = req_dx; // Om det inte är en vägg så godkänns den riktning pacman vill åt och direktion koordinater tilldelas
 					dy = req_dy;
 				}
 			}
-
+			// Om pacman går på en eatingMode powerup
 			if (x == model.get_randomCoordinate_x() * BLOCK_SIZE && y == model.get_randomCoordinate_y() * BLOCK_SIZE)  {
 				pacmanEatingMode = true;
 				model.set_randomCoordinate_x(15);
 				model.set_randomCoordinate_y(20);
-				System.out.println("PacmanEatingMode aktiverad");
+				System.out.println("PacmanEatingMode aktiverad för 10 sekunder");
 				pacmanEatingModeTimer = new Timer(10000, new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						pacmanEatingMode = false;
 						System.out.println("PacmanEatingMode är över");
+						model.set_randomCoordinate_x(40);
 					}
 				});
 				pacmanEatingModeTimer.setRepeats(false);
 				pacmanEatingModeTimer.start();
 
-				// Gör så detta endast gäller i 30 sekunder
+				// Om pacman går på en extraliv-powerup
 			} else if (x == model.get_randomCoordinateTwo_x() * BLOCK_SIZE && y == model.get_randomCoordinateTwo_y() * BLOCK_SIZE) {
 				model.addLife();
 				model.set_randomCoordinateTwo_x(30);
 				System.out.println("AddLife");
+
+				// Om pacman går på en speed-powerup
 			} else if (x == model.get_randomCoordinateThree_x() * BLOCK_SIZE && y == model.get_randomCoordinateThree_y() * BLOCK_SIZE) {
-				if (PACMAN_SPEED <= 3) {
+				if (PACMAN_SPEED <= 3) { // Om pacmans hastighet är mindre än 3 så går den att plocka, annars ligger den kvar. 
 					increaseSpeed();
 					model.set_randomCoordinateThree_x(14);
 					model.set_randomCoordinateThree_y(20);
@@ -107,37 +108,37 @@ public class Pacman {
 				}
 			}
 
-			// Check for standstill
-			if ((dx == -1 && dy == 0 && (ch & 1) != 0)
-					|| (dx == 1 && dy == 0 && (ch & 4) != 0)
-					|| (dx == 0 && dy == -1 && (ch & 2) != 0)
-					|| (dx == 0 && dy == 1 && (ch & 8) != 0)) {
+			// Checker för att se till att Pacman inte kan gå in i en vägg efter att pacman stått stilla.
+			if ((dx == -1 && dy == 0 && (cellState & 1) != 0)
+					|| (dx == 1 && dy == 0 && (cellState & 4) != 0)
+					|| (dx == 0 && dy == -1 && (cellState & 2) != 0)
+					|| (dx == 0 && dy == 1 && (cellState & 8) != 0)) {
 				dx = 0;
 				dy = 0;
 			}
 		}
-		// This shiet works now - Kollar efter en kollision mellan spöke och mr pac
+		
+		// This shiet works now - Kollar efter en kollision mellan spöke och mr pac 
+		// Det gick inte från början eftersom att vi inte tänkte på att ett block är 24 storlek därmed måste man kolla tolv pixlar upp, ner, höger och vänster efter en kollektion. 
+		// En kvadratmeter kan man tänka istället för endast mitten av kvadratmetern så är kollisionen med en hel låda
 		for (int i = 0; i < N_GHOSTS; i++) {
 			if (x > (ghost_x[i] - 12) && x < (ghost_x[i] + 12)
 					&& y > (ghost_y[i] - 12) && y < (ghost_y[i] + 12)
 					&& inGame) {
-				//System.out.println("Collaps between pacman and ghost.");
-				// If Pacman is in eating mode, eat the ghost instead of dying
-				if (pacmanEatingMode()) {
-					eatGhost(i); // This is a new method you will need to implement
+				if (pacmanEatingMode()) { // Sålänge pacman är i eatingMode så går det att käka spöken annars dör man vid en kollaps.
+					eatGhost(i);
 				} else {
-					//System.out.println("Collaps between pacman and ghost.");
 					dying = true;
 					setDeath(dying);
 				}
 			}
 		}
-		x = x + PACMAN_SPEED * dx;
+		x = x + PACMAN_SPEED * dx; // Här tar vi nuvarande koordinat plus pacmans hastsighet multiplicerat med den riktning som man vill gå mot.
 		y = y + PACMAN_SPEED * dy;
 	}
 
-	
-	public void drawPac(Graphics2D g2d) {
+
+	public void drawPac(Graphics2D g2d) { // Ritar ut rätt pacmanbild olika beroende på vilket håll pacman e påväg mot
 		if (pacmanEatingMode == false) {
 			if (req_dx == -1) {
 				g2d.drawImage(left, x + 1, y + 1, model );
@@ -148,7 +149,7 @@ public class Pacman {
 			} else {
 				g2d.drawImage(down, x + 1, y + 1, model);
 			}       
-		} else {
+		} else { // Om pacman är i eatingmode så ritas detta ut
 			if (req_dx == -1) {
 				g2d.drawImage(fireMode, x - 12, y - 15, model );
 				g2d.drawImage(left, x + 1, y + 1, model );
@@ -165,7 +166,7 @@ public class Pacman {
 		}
 	}
 
-	
+
 	public void updateNumGhosts(int numGhosts) {
 		this.N_GHOSTS = numGhosts;
 	}
@@ -174,7 +175,7 @@ public class Pacman {
 		// Ät spöket
 		model.getGhostClass().removeGhost(ghostIndex);
 
-		// Uppdatera antalet spöken
+		// Uppdatera antalet spöken för stunden
 		updateNumGhosts(model.getGhostClass().getNumGhosts());
 
 		// Öka poäng med 5
@@ -183,13 +184,13 @@ public class Pacman {
 
 
 	public void increaseSpeed() {
-		// Denna gäller endast 10 sekunder. Det är det vi satt timnen till.
+
 		PACMAN_SPEED += 1; //
-		System.out.println("SpeedMode aktiverad");
-		increaseSpeed = new Timer(10000, new ActionListener() {
+		System.out.println("SpeedMode aktiverad för 10 sekunder");
+		increaseSpeed = new Timer(10000, new ActionListener() { // Denna gäller endast 10 sekunder
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if ((x % BLOCK_SIZE == 0) && (y % BLOCK_SIZE == 0)) {
+				if ((x % BLOCK_SIZE == 0) && (y % BLOCK_SIZE == 0)) { // Om pacman inte står mellan två koordinater
 					PACMAN_SPEED -= 1;
 					dx = 0;
 					dy = 0;
@@ -197,6 +198,7 @@ public class Pacman {
 					req_dy = 0;
 					move();
 					System.out.println("SpeedMode är över. Pacman stannar upp tills du börjar röra på karaktären igen.");
+					model.set_randomCoordinateThree_x(40);
 				} else {
 					increaseSpeed.setInitialDelay(100); // Denna checker finns med eftersom att det blir strul om pacman står mellan två koordinater
 					increaseSpeed.setRepeats(false); // Checker för att göra så den inte uppdaterar oändligt med gånger
@@ -204,17 +206,16 @@ public class Pacman {
 				}
 			}
 		});
-		increaseSpeed.setRepeats(false);
-		increaseSpeed.start();
+		increaseSpeed.setRepeats(false); // Om dessa setrepeats false inte fanns så skulle timern fortsätta att köras
+		increaseSpeed.start(); 
 	}
-
 
 	public boolean pacmanEatingMode() {
 		return pacmanEatingMode;
 	}	
 
 	public Point getPacManLocation() {
-	    return new Point(x, y); 
+		return new Point(x, y); 
 	}
 
 	public void setReq_dx(int req_dx) {

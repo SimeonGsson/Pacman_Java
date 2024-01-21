@@ -9,7 +9,7 @@ public class Ghost {
 	private int BLOCK_SIZE, N_GHOSTS, N_BLOCKS;
 	private short[] screenData;
 	private Image ghost;
-	boolean[] ghostActive = new boolean[getN_GHOSTS()];  // Add this line, assume all ghosts are active initially
+	boolean[] ghostActive = new boolean[getN_GHOSTS()]; 
 
 	public Ghost(short[] screenData, int N_BLOCKS, int N_GHOSTS, int BLOCK_SIZE, int[] ghost_x, int[] ghost_y, int[] ghost_dx, int[] ghost_dy, int[] dx, int[] dy, int[] ghostSpeed) {
 		this.setN_GHOSTS(N_GHOSTS);
@@ -25,23 +25,22 @@ public class Ghost {
 		this.ghostSpeed = ghostSpeed;
 
 		this.ghostActive = new boolean[N_GHOSTS];
-		Arrays.fill(ghostActive, Boolean.TRUE); // Gör alla spöken aktiva direkt
+		Arrays.fill(ghostActive, Boolean.TRUE); // Gör alla spöken aktiva direkt - när ett spöke äts upp så tar man bort det spökets aktiva status
 
 		loadImages();
 	}
 
 
 	private void loadImages() {
-		ghost = new ImageIcon("C:\\Users\\simeo\\Downloads\\ghost.gif").getImage();
+		ghost = new ImageIcon("C:\\Users\\simeo\\Downloads\\Shrek-ezgif.com-resize (1).gif").getImage();
 	}
-
 
 	public void move() {
 		int pos;
 		int count;
 		for (int i = 0; i < getN_GHOSTS(); i++) {   
 
-			if (ghostActive[i]) {  // Only move the ghost if it's active
+			if (ghostActive[i]) {  // Om spöket är aktivt så ska det röra sig
 
 				if (getGhost_x()[i] % BLOCK_SIZE == 0 && getGhost_y()[i] % BLOCK_SIZE == 0) {
 					pos = getGhost_x()[i] / BLOCK_SIZE + N_BLOCKS * (int) (getGhost_y()[i] / BLOCK_SIZE); // Koordinaten för positionen
@@ -116,26 +115,22 @@ public class Ghost {
 		updateNumGhosts(); // Denna funktion kallar vi på så att spöken inte försvinner helt. De spawnar i ett annat spöke istället.
 	}
 
-
 	public void draw(Graphics2D g2d, int[] x, int[] y) {
 		for (int i = 0; i < getN_GHOSTS(); i++) {
 			if (ghostActive[i]) {
 				g2d.drawImage(ghost, x[i], y[i], null);
-			} else {
-				System.out.println("This ghost is not active");
 			}
 		}
 	}
 
+	
 	public int getNumGhosts() {
 		return getN_GHOSTS();
 	}
 
-
 	public int[] getGhost_x() {
 		return ghost_x;
 	}
-
 
 	public void setGhost_x(int[] ghost_x) {
 		this.ghost_x = ghost_x;
@@ -145,19 +140,22 @@ public class Ghost {
 		return ghost_y;
 	}
 
-
 	public void setGhost_y(int[] ghost_y) {
 		this.ghost_y = ghost_y;
 	}
-
 
 	public int getN_GHOSTS() {
 		return N_GHOSTS;
 	}
 
-
 	public void setN_GHOSTS(int n_GHOSTS) {
 		N_GHOSTS = n_GHOSTS;
 	}
+	
+	public void setGhostActive() {
+	    ghostActive = Arrays.copyOf(ghostActive, N_GHOSTS);
+	    Arrays.fill(ghostActive, Boolean.TRUE);
+	}
+
 
 }

@@ -12,10 +12,9 @@ public class Main extends JFrame{
 		pacman.setVisible(true);
 		pacman.setTitle("Pacman");
 		pacman.setSize(590,555);
-		// pacman.setSize(496,545);
 		pacman.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pacman.setLocationRelativeTo(null);
 		
 	}
 
-}
+} 

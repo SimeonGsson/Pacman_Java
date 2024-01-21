@@ -53,10 +53,35 @@ public class GameMap {
 			17, 16, 16, 20, 0, 17, 16, 16, 16, 20, 0, 0, 17, 16, 16, 20, 0, 17, 16, 20,
 			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 26, 26, 24, 24, 24, 24, 26, 24, 24, 28
 	};
-	// 0 = vägg, 1 = vägg till vänster, 2 = tak vägg, 4 = vägg till höger, 8 = golv vägg, 16 = ätbara platser
-	// Gäller att plussa ihop dem för att få dem att fungera
 	
-	public GameMap(int n_blocks, short[] screenData) {
+	private final short TestMap[] = {
+			19, 18, 18, 26, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 22,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			21,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			21,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			21,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			17,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20,
+			25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 26, 26, 24, 24, 24, 24, 26, 24, 24, 28
+	};
+	// Logik för banan - Gick inte så bra med att bara utgå från koordinaten eftersom pacman då kan åka igenom halva väggen innan det tar stopp. Detta sätt funkar bättre och då fick det bli såhär trots att det är lite komplicerat ibland. 
+	// 0 = vägg, 1 = vägg till vänster, 2 = tak vägg, 4 = vägg till höger, 8 = golv vägg, 16 = ätbara platser
+	// Gäller att plussa ihop dem för att få dem att fungera. T.ex när det är en vägg både till höger och vänster så får man plussa ihop
+	// 16 för en vit prick + 2 för ett tak + 8 för golvet = 26
+	
+	public GameMap(int n_blocks, short[] screenData) { // Initiera / aktivera variablerna
 		this.screenData = screenData;
 		this.N_BLOCKS = n_blocks;
 		this.SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE;
@@ -80,8 +105,11 @@ public class GameMap {
 	public short[] getMapTwo() {
 		return mapTwo;
 	}
+	public short[] getTestMap() {
+		return TestMap;
+	}
 	
-	public void draw(Graphics2D g2d) {
+	public void draw(Graphics2D g2d) { // Denna funktion används för att rita ut banan. Kommer repetetivt kallas på i gameloopen i model
 		short i = 0;
 		int x, y;
 		
@@ -118,7 +146,7 @@ public class GameMap {
 	        }
 	    }
 
-	private void drawPellet(Graphics2D g2d, int x, int y) {
+	private void drawPellet(Graphics2D g2d, int x, int y) { // Rita upp de vita prickarna på de platser som ska ha det
 		g2d.setColor(new Color(255,255,255));
 		g2d.fillOval(x + 10, y + 10, 6, 6);
 	}

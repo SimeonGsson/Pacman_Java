@@ -26,40 +26,34 @@ public class Model extends JPanel implements ActionListener{
 	private final Font bigFont = new Font("Arial", Font.BOLD, 25); // Font för GameOver
 	private boolean inGame = false; // inGame används för att avgöra om GameOverskärmen eller Introskärmen ska visas. När den är true så betyder det att spelet är igång
 	private boolean dying = false; // dying används i death funktionen som hanterar vad som händer när pacman blir käkad av spöken
-
+	private boolean gameOver = false; // Avgör om gameOverskrämen ska visas
+	private boolean gameStarted = false; // Avgör om Introskärmen ska visas
+	
+	// Går ej att modifiera
 	private final int BLOCK_SIZE = 24; // Storleken på rutorna
 	private final int N_BLOCKS = 20; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
 	private final int SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE; // rutornas totala yta. Hur stor yta kommer dessa rutor ta upp? Spelplanen kommer dock vara 15x15
 	private final int MAX_GHOSTS = 20; // Totala antalet spöken som kan finns med
-	private final int PACMAN_SPEED = 4; // Hur snabb pacman ska vara från början - ta bort final om denna ska ändras under spelets gång
-
-	private int N_GHOSTS = 8; // Antalet spöken som finns med från början
+	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
+	private final int maxSpeed = 8; // // maxHastighet
+	
+	private int currentSpeed = 2; // Pacmands hastighet från början
+	private int N_GHOSTS = 2; // Antalet spöken som finns med från början
 	private int lives, score;
 	private int [] dx, dy; // Behövs för positionen för spökena
 	private int [] ghost_x, ghost_y, ghost_dx, ghost_dy, ghostSpeed; // Behövs också för att veta antalet och positionen av spökena 
-
-	private Image heart, ghost, elixir, speed; // Ikoner för objekten
-	private Image up, down, left, right; // Ikoner för pacman
-
-	private int pacman_x, pacman_y, pacman_dx, pacman_dy; // Delta grejerna är riktningen för pacman som åberopas, de andra är positionen för pacman
-	private int req_dx, req_dy, randomCoordinate_x, randomCoordinate_y, randomCoordinateTwo_x, randomCoordinateTwo_y, randomCoordinateThree_x, randomCoordinateThree_y;
-
+	private int randomCoordinate_x, randomCoordinate_y, randomCoordinateTwo_x, randomCoordinateTwo_y, randomCoordinateThree_x, randomCoordinateThree_y;
+	
+	private Image heart, elixir, speed; // Ikoner för objekten
 	private GameMap gameMap; // Vi skapar en instans av klassen med banorna. Sedan kommer vi använda selectedMap för att kopiera den bana som ska användas. Vi börjar sätta startvärdet till bana ett men sedan går det att välja mellan ett och två
 	private Ghost ghostclass; // Vi skapar en instans av spökklassen
 	private Pacman pacmanclass; // VI skapar en instans av pacmanklassen
-	private short [] selectedMap;
-
-	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
-	private final int maxSpeed = 8; // 
-
-	private int currentSpeed = 2; // Pacmands hastighet från början
-	private short [] screenData; // Denna kommer ta in datan för hur banan är utformad och kommer användas i en funktion för rita om spelet när något händer
 	private Timer timer;
-
-	private boolean gameOver = false;
-	private boolean gameStarted = false;
 	
-	private static final int MAX_HIGH_SCORES = 5;
+	private short [] selectedMap; // Den valda banan
+	private short [] screenData; // Denna kommer ta in datan för hur banan är utformad och kommer användas i en funktion för rita om spelet när något händer
+	
+	private static final int MAX_HIGH_SCORES = 5; // Antalet resultat som kan visas samtidigt
     private List<Integer> highScores = new ArrayList<>(); // Listan för att lagra bästa resultat
 
 
@@ -77,12 +71,12 @@ public class Model extends JPanel implements ActionListener{
 
 
 	private void loadImages() {
-		ghost = new ImageIcon("C:\\Users\\simeo\\Downloads\\ghost.gif").getImage();
-		heart = new ImageIcon("C:\\Users\\simeo\\Downloads\\heart.png").getImage();
+		heart = new ImageIcon("C:\\Users\\simeo\\Downloads\\blueHeart-ezgif.com-resize.gif").getImage();
 		elixir = new ImageIcon("C:\\Users\\simeo\\Downloads\\elixir (1).png").getImage();
 		speed = new ImageIcon("C:\\Users\\simeo\\Downloads\\sprint_1483660 (1).png").getImage();
 	}
 
+	
 	private void initVariables() { // Här initierar vi alla variabler som inte är initierade ännu och ger dem ett startvärde
 		screenData = new short[N_BLOCKS * N_BLOCKS];
 		d = new Dimension(590, 540);
@@ -116,7 +110,64 @@ public class Model extends JPanel implements ActionListener{
 		checkMaze();
 	}
 
+	
+	class TAdapter extends KeyAdapter { // Här styrs tangentbordstrycken
+		public void keyPressed(KeyEvent e) {
+			int key = e.getKeyCode();
+			char keyChar = e.getKeyChar();
 
+			if (Character.isDigit(keyChar) && !inGame) {
+				int mapNumber = Character.getNumericValue(keyChar);
+				switch (mapNumber) {
+				case 1:
+					System.out.println("Bana 1 vald");
+					getCurrentMap(gameMap.getMapOne());
+					initLevel();
+					break;
+				case 2:
+					System.out.println("Bana 2 vald");
+					getCurrentMap(gameMap.getMapTwo());
+					initLevel();
+					break;
+				case 3:
+					System.out.println("Testbana vald");
+					getCurrentMap(gameMap.getTestMap());
+					initLevel();
+					break;
+				default:
+					break;
+				}
+			}
+
+			if (inGame) {
+				if (key == KeyEvent.VK_LEFT) {
+					pacmanclass.setReq_dx(-1);
+					pacmanclass.setReq_dy(0);
+				} else if (key == KeyEvent.VK_RIGHT) {
+					pacmanclass.setReq_dx(1);
+					pacmanclass.setReq_dy(0);
+				} else if (key == KeyEvent.VK_UP) {
+					pacmanclass.setReq_dx(0);
+					pacmanclass.setReq_dy(-1);
+				} else if (key == KeyEvent.VK_DOWN) {
+					pacmanclass.setReq_dx(0);
+					pacmanclass.setReq_dy(1);
+				} else if (key == KeyEvent.VK_DOWN) {
+					pacmanclass.setReq_dx(0);
+					pacmanclass.setReq_dy(1);
+				} else if (key == KeyEvent.VK_ESCAPE && timer.isRunning()) {
+					inGame = false;
+				}
+			} else {
+				if (key == KeyEvent.VK_SPACE) {
+					inGame = true;
+					initGame();
+				}
+			}
+		}
+	}
+	
+	// Lite draw funktioner:
 	public void showIntroScreen(Graphics2D g2d) {
 		String start = "Tryck SPACE för att starta :)";
 		String map = "Välkommen! Klicka på 1 eller 2 för att byta bana";
@@ -129,7 +180,6 @@ public class Model extends JPanel implements ActionListener{
 		g2d.drawString(map, (SCREEN_SIZE) / 9, 150);
 		g2d.drawString(start, (SCREEN_SIZE) / 4, 325);
 	}
-
 
 	public void drawScoreAndLives(Graphics2D g) {
 		g.setFont(smallFont);
@@ -192,6 +242,7 @@ public class Model extends JPanel implements ActionListener{
 	//	System.out.println("Speed coordinate x: " + randomCoordinate_x + " + y: " + randomCoordinate_y);
 	}
 
+	
 	public void addScore(int newScore) {
         if (highScores.size() < MAX_HIGH_SCORES || newScore > highScores.get(highScores.size() - 1)) {
             highScores.add(newScore);
@@ -202,11 +253,12 @@ public class Model extends JPanel implements ActionListener{
         }
 	}
 
-	public void checkMaze() {
+	
+	public void checkMaze() { // Håller reda på prickarna
 		int i = 0;
 		boolean finished = true;
 
-		// Kikar efter om det fortfarande finns prickar att äta Check for the presence of pellets (represented by the number 16)
+		// Kikar efter om det fortfarande finns prickar att äta
 		for (i = 0; i < N_BLOCKS * N_BLOCKS; i++) {
 			if ((screenData[i] & 16) !=0) {
 				finished = false;
@@ -218,7 +270,12 @@ public class Model extends JPanel implements ActionListener{
 			score += 500;
 
 			if (N_GHOSTS * 2 < MAX_GHOSTS) {
-				N_GHOSTS = 2*N_GHOSTS;	
+				System.out.println(N_GHOSTS + " N_GHOSTS before * 2");
+				N_GHOSTS = N_GHOSTS*2;
+				System.out.println(N_GHOSTS + " N_GHOSTS");
+				ghostclass.setN_GHOSTS(N_GHOSTS);
+				ghostclass.setGhostActive();
+				System.out.println("Spelets spöken fördubblas");
 			} else if (N_GHOSTS + 3 < MAX_GHOSTS) {
 				N_GHOSTS += 3;
 			} else if (N_GHOSTS + 2 < MAX_GHOSTS) {
@@ -246,20 +303,19 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	// Timer för att hålla koll så att changeCoordinates körs efter en viss specificerad tid
-	Timer coordinateTimer = new Timer(10000, new ActionListener() {
+	Timer coordinateTimer = new Timer(5000, new ActionListener() { // Timer för att hålla koll så att changeCoordinates körs efter en viss specificerad tid
 	    @Override
 	    public void actionPerformed(ActionEvent e) { // När timern har gått ut så får powerupsen nya koordinater
 	        changeCoordinates();
 	    }
 	});
 
-	// Funktion för att byta koordinater för powerups
-	private void changeCoordinates() {
+
+	private void changeCoordinates() { 	// Funktion för att byta koordinater för powerups. Hur ofta bestäms av Timern ovan.
 	    int[][] coordinates = {	
 	    		{3, 16}, {9, 3}, {7, 2},
-	    		{18, 14}, {2, 14}, {5, 5}, {18, 14}, {13, 18}, {2, 7} ,{3, 16}, {3, 9}, {3, 12}, {3, 12}, {12, 3}, {9, 3}, {7, 2}, {12, 4}, {2, 4}, 
-	    		{17, 15}, {3, 14}, {3, 5}, {11, 14}, {11, 17}, {6, 7} ,{2, 16}, {2, 9}, {3, 6}, {5, 12}, {19, 3}, {7, 3}, {2, 2}, {3, 2}, {2, 17}, 
+	    		{18, 14}, {2, 14}, {6, 5}, {18, 14}, {13, 18}, {3, 7} ,{3, 16}, {3, 9}, {3, 12}, {3, 12}, {12, 3}, {9, 3}, {7, 2}, {12, 4}, {2, 4}, 
+	    		{17, 15}, {3, 14}, {3, 6}, {11, 14}, {11, 17}, {6, 7} ,{2, 16}, {2, 9}, {3, 6}, {5, 12}, {19, 3}, {7, 3}, {2, 2}, {3, 2}, {2, 17}, 
 	    };
 
 	    Random rand = new Random();
@@ -289,16 +345,16 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	private void initGame() { // Spelet initieras - sätt ut startvärden som ska återställas vid spelstart
+	private void initGame() { // Spelet initieras - sätt ut startvärden
 		lives = 1; // Startar med ett liv
 		score = 0; // Startar med 0 poäng.
 		initLevel(); // initiera banan
-		N_GHOSTS = 8; // Startar med åtta spöken
+		N_GHOSTS = 2; // Startar med åtta spöken
 		setCurrentSpeed(2); // Pacmans hastighet initieras
 	}
 
 
-	private void initLevel() {
+	private void initLevel() { // Kopiera spelplanen från den bana som valts: selectedMap
 		int i;
 		for (i = 0; i<N_BLOCKS * N_BLOCKS; i++) { // För varje ruta 15x15 = 225 st 
 			screenData[i] = selectedMap[i]; // Kopiera det värdet på spelplan som representerar den rutan
@@ -338,7 +394,7 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	public void paintComponent(Graphics g) {
+	public void paintComponent(Graphics g) { // Här ritar vi ut allt som ska ritas ut. Detta gör vi genom java.awt.Graphics klassen som importerats
 		super.paintComponent(g);
 
 		Graphics2D g2d = (Graphics2D) g;
@@ -369,80 +425,47 @@ public class Model extends JPanel implements ActionListener{
 		g2d.dispose();
 	}
 
-	// Här styrs tangentbordstrycken
-	
-	class TAdapter extends KeyAdapter {
-		public void keyPressed(KeyEvent e) {
-			int key = e.getKeyCode();
-			char keyChar = e.getKeyChar();
-
-			if (Character.isDigit(keyChar) && !inGame) {
-				int mapNumber = Character.getNumericValue(keyChar);
-				switch (mapNumber) {
-				case 1:
-					System.out.println("Key 1 pressed");
-					getCurrentMap(gameMap.getMapOne());
-					initLevel();
-					break;
-				case 2:
-					System.out.println("Key 2 pressed");
-					getCurrentMap(gameMap.getMapTwo());
-					initLevel();
-					break;
-					// add more cases if you have more maps
-				default:
-					break;
-				}
-			}
-
-			if (inGame) {
-				if (key == KeyEvent.VK_LEFT) {
-					pacmanclass.setReq_dx(-1);
-					pacmanclass.setReq_dy(0);
-				} else if (key == KeyEvent.VK_RIGHT) {
-					pacmanclass.setReq_dx(1);
-					pacmanclass.setReq_dy(0);
-				} else if (key == KeyEvent.VK_UP) {
-					pacmanclass.setReq_dx(0);
-					pacmanclass.setReq_dy(-1);
-				} else if (key == KeyEvent.VK_DOWN) {
-					pacmanclass.setReq_dx(0);
-					pacmanclass.setReq_dy(1);
-				} else if (key == KeyEvent.VK_DOWN) {
-					pacmanclass.setReq_dx(0);
-					pacmanclass.setReq_dy(1);
-				} else if (key == KeyEvent.VK_ESCAPE && timer.isRunning()) {
-					inGame = false;
-				}
-			} else {
-				if (key == KeyEvent.VK_SPACE) {
-					inGame = true;
-					initGame();
-				}
-			}
-		}
-	}
 
 	public void incrementScoreByFive() { // Denna poängökning körs när man äter ett spöke
 		score += 5;
 	}
 
+	
 	public void addLife() { // Säger sig självt. Om du har färre än fem liv så ökar du med ett liv när du tar den powerupen
 		if (lives <= 4) {
 		lives++;
 		}
 	}
 	
+	
+	public void updateNumGhosts(int numGhosts) {
+		this.N_GHOSTS = numGhosts;
+	}
+
+	
+	public void removeGhost(int currentGhostIndex) {
+		// kallar på removeghost funktionen i ghost klassen
+		ghostclass.removeGhost(currentGhostIndex);
+		// Uppdaterar antalet spöken i denna klass vilket uppdaterar N_GHOSTS överallt. Detta går eftersom jag skrivit en get funktion för N_GHOSTS
+		N_GHOSTS--;
+	}
+	
+	
 	public void incrementScore() {  // Ökar med ett poäng, används för att registrera poäng för prickar som blir käkade.
 		score++;
 	}
 
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		repaint();
 	}
 
-
+	
+	public Ghost getGhostClass() {
+		return ghostclass;
+	}
+	
 	public short[] getScreenData() {
 		// TODO Auto-generated method stub
 		return screenData;
@@ -457,16 +480,8 @@ public class Model extends JPanel implements ActionListener{
 		return currentSpeed;
 	}
 
-	public void setCurrentSpeed(int currentSpeed) {
-		this.currentSpeed = currentSpeed;
-	}
-
 	public int get_N_GHOSTS() {
 		return N_GHOSTS;
-	}
-
-	public void updateNumGhosts(int numGhosts) {
-		this.N_GHOSTS = numGhosts;
 	}
 	
 	public int get_randomCoordinate_x() {
@@ -516,18 +531,10 @@ public class Model extends JPanel implements ActionListener{
 	public void set_randomCoordinateThree_y(int newy) {
 		this.randomCoordinateThree_y = newy;
 	}
-
-	public void removeGhost(int currentGhostIndex) {
-		// kallar på removeghost funktionen i ghost klassen
-		ghostclass.removeGhost(currentGhostIndex);
-		// Uppdaterar antalet spöken i denna klass vilket uppdaterar N_GHOSTS överallt. Detta går eftersom jag skrivit en get funktion för N_GHOSTS
-		N_GHOSTS--;
+	
+	public void setCurrentSpeed(int currentSpeed) {
+		this.currentSpeed = currentSpeed;
 	}
-
-	public Ghost getGhostClass() {
-		return ghostclass;
-	}
-
-
+	
 
 }
