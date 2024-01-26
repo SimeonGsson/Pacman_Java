@@ -2,30 +2,29 @@
 import javax.swing.JFrame;
 
 /**
- * The main class for the Pacman game. Extends JFrame to create the game window.
+ * Huvudklassen för Pacman-spelet. Utökar JFrame för att skapa spelets fönster.
  */
 public class Main extends JFrame{
-
-	 /**
-     * Constructs a new Main object. Initializes the game by adding a new instance of the Model class.
+	
+	/**
+     * Konstruerar en ny instans av Main. Initialiserar spelet genom att lägga till en ny instans av Model-klassen.
      */
 	public Main() {
-		add(new Model());
+        add(new Model()); // Skicka med highscoreManager till din Model-klass
 	}
 	
 	 /**
-     * The main method that creates an instance of the Main class, sets up the game window, and makes it visible.
+     * Huvudmetoden som skapar en instans av Main-klassen, ställer in spelets fönster och gör det synligt.
      *
-     * @param args Command-line arguments (not used in this application).
+     * @param args Kommandoradsargument (används inte i detta program).
      */
-	public static void main(String[] args) {
-		Main pacman = new Main();
-		pacman.setVisible(true);
-		pacman.setTitle("Pacman");
-		pacman.setSize(590,555);
-		pacman.setDefaultCloseOperation(EXIT_ON_CLOSE);
-		pacman.setLocationRelativeTo(null);
-		
-	}
-
+	 public static void main(String[] args) {
+	        Main pacman = new Main();
+	        pacman.setVisible(true);
+	        pacman.setTitle("Pacman");
+	        pacman.setSize(590, 555);
+	        pacman.setDefaultCloseOperation(EXIT_ON_CLOSE);
+	        pacman.setLocationRelativeTo(null);
+	    
+	    }
 } 

@@ -116,7 +116,6 @@ public class BarrelShrek extends Shrek {
 	public void TemporaryValuesToDrawRollingBarrel() {
 
 		if (barrelx < 24 || barrely < 24 || barrelx % BLOCK_SIZE != 0 || barrely % BLOCK_SIZE != 0) {
-			System.out.println("Barrel coordinates not fully on a cell");
 			Timer tryAgainTimer = new Timer(40, new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -131,9 +130,8 @@ public class BarrelShrek extends Shrek {
 			tempy = barrely;
 			tempdx = barreldx;
 			tempdy = barreldy;
-			System.out.println("Barrelx = " + barrelx);
-			System.out.println("Barrely = " + barrely);
-			System.out.println("Barrel coordinates assigned");
+//			System.out.println("Barrelx = " + barrelx);
+//			System.out.println("Barrely = " + barrely);
 		}
 	}
 

@@ -112,8 +112,8 @@ public class Barrel {
 		for (int i = startX; i < endX; i+= 24) { 
 			for (int j = startY; j < endY; j+= 24) { 
 				explosionArea.add(new int[]{i, j});
-				System.out.println("cord added");
-				System.out.println(explosionArea.size());
+//				System.out.println("cord added");
+//				System.out.println(explosionArea.size());
 			}
 		}
 		return explosionArea;

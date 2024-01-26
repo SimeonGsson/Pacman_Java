@@ -28,6 +28,7 @@ import javax.swing.Timer;
  */
 public class Model extends JPanel implements ActionListener{
 
+	
 	private Dimension d; // Spelplanens storlek
 	private final Font smallFont = new Font("Arial", Font.BOLD, 17); // Font för texten
 	private final Font bigFont = new Font("Arial", Font.BOLD, 25); // Font för GameOver
