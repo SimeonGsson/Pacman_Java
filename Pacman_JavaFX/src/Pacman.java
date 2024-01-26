@@ -6,6 +6,10 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.Timer;
 
+/**
+ * Pacman-klassen representerar huvudfiguren i Pacman-spelet.
+ * Den hanterar rörelse, kollisioner, power-ups och andra spelrelaterade funktioner.
+ */
 public class Pacman {
 	private int x, y, dx, dy, req_dx, req_dy, N_SHREKS;
 	private final int BLOCK_SIZE;
@@ -22,7 +26,17 @@ public class Pacman {
 	private Timer pacmanEatingModeTimer;
 	private Timer increaseSpeed;
 
-
+	 /**
+     * Konstruktorn för Pacman-klassen.
+     * @param screenData En array som representerar spelbanans data.
+     * @param N_BLOCKS Antal block i spelbanan.
+     * @param model En instans av Model-klassen som hanterar spelets övergripande logik.
+     * @param shrek_x En array som innehåller x-koordinaterna för spökena.
+     * @param shrek_y En array som innehåller y-koordinaterna för spökena.
+     * @param dying En flagga som indikerar om Pacman håller på att dö.
+     * @param N_SHREKS Antal spöken i spelet.
+     * @param inGame En flagga som indikerar om spelet är igång.
+     */
 	public Pacman(short[] screenData, int N_BLOCKS, Model model, int[] shrek_x, int[] shrek_y, boolean dying, int N_SHREKS, boolean inGame) {
 		this.screenData = screenData;
 		this.N_BLOCKS = N_BLOCKS;
@@ -40,6 +54,9 @@ public class Pacman {
 		loadImages();
 	}
 
+	/**
+     * Laddar bilderna för Pacman och power-ups.
+     */
 	private void loadImages() {
 		down = new ImageIcon("C:\\Users\\simeo\\Downloads\\down.gif").getImage();
 		up = new ImageIcon("C:\\Users\\simeo\\Downloads\\up.gif").getImage();
@@ -48,6 +65,9 @@ public class Pacman {
 		fireMode = new ImageIcon("C:\\Users\\simeo\\Downloads\\y8 (1).gif\\").getImage();
 	}
 
+	 /**
+     * Hanterar Pacmans rörelse och kollisioner.
+     */
 	public void move() { // Denna funktion hanterar pacmans rörelselogik. Vilket håll går pacman? Finns det en vägg? Käkar pacman en prick? Ska någon powerup aktiveras?
 
 		int pos;
@@ -137,7 +157,10 @@ public class Pacman {
 	}
 
 
-	
+	/**
+     * Ritar Pacman på spelplanen med rätt bild beroende på rörelseriktning och power-up-läge.
+     * @param g2d Graphics2D-objekt för att rita Pacman.
+     */
 	public void drawPac(Graphics2D g2d) { // Ritar ut rätt pacmanbild olika beroende på vilket håll pacman e påväg mot
 		if (pacmanEatingMode == false) {
 			if (req_dx == -1) {
@@ -166,11 +189,18 @@ public class Pacman {
 		}
 	}
 
-
+	/**
+     * Uppdaterar antalet spöken i spelet.
+     * @param numShreks Antal spöken.
+     */
 	public void updateNumShreks(int numShreks) {
 		this.N_SHREKS = numShreks;
 	}
 
+	  /**
+     * Hanterar när Pacman äter ett spöke.
+     * @param shrekIndex Index för det spöke som Pacman äter.
+     */
 	public void eatShrek(int shrekIndex) {
 		// Ät spöket
 		model.getShrekClass().removeShrek(shrekIndex);
@@ -182,9 +212,10 @@ public class Pacman {
 		model.incrementScoreByFive();
 	}
 
-
+	 /**
+     * Ökar Pacmans hastighet under en begränsad tid.
+     */
 	public void increaseSpeed() {
-
 		PACMAN_SPEED += 1; //
 		System.out.println("SpeedMode aktiverad för 10 sekunder");
 		increaseSpeed = new Timer(10000, new ActionListener() { // Denna gäller endast 10 sekunder
@@ -209,7 +240,9 @@ public class Pacman {
 		increaseSpeed.setRepeats(false); // Om dessa setrepeats false inte fanns så skulle timern fortsätta att köras
 		increaseSpeed.start(); 
 	}
-
+	
+	// Relevanta getters och setters som behövs
+	
 	public boolean pacmanEatingMode() {
 		return pacmanEatingMode;
 	}	
