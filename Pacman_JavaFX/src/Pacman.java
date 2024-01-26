@@ -7,15 +7,15 @@ import javax.swing.ImageIcon;
 import javax.swing.Timer;
 
 public class Pacman {
-	private int x, y, dx, dy, req_dx, req_dy, N_GHOSTS;
+	private int x, y, dx, dy, req_dx, req_dy, N_SHREKS;
 	private final int BLOCK_SIZE;
 	private int PACMAN_SPEED;
 	private final int N_BLOCKS;
 	private Model model;
 	private Image up, down, left, right, fireMode;
 	private short[] screenData;
-	private int[] ghost_x;
-	private int[] ghost_y;
+	private int[] shrek_x;
+	private int[] shrek_y;
 	private boolean dying;
 	private boolean inGame;
 	private boolean pacmanEatingMode;
@@ -23,17 +23,17 @@ public class Pacman {
 	private Timer increaseSpeed;
 
 
-	public Pacman(short[] screenData, int N_BLOCKS, Model model, int[] ghost_x, int[] ghost_y, boolean dying, int N_GHOSTS, boolean inGame) {
+	public Pacman(short[] screenData, int N_BLOCKS, Model model, int[] shrek_x, int[] shrek_y, boolean dying, int N_SHREKS, boolean inGame) {
 		this.screenData = screenData;
 		this.N_BLOCKS = N_BLOCKS;
 		this.BLOCK_SIZE = 24;
 		this.PACMAN_SPEED = 3;
 		this.model = model;
-		this.ghost_x = ghost_x;
-		this.ghost_y = ghost_y;
+		this.shrek_x = shrek_x;
+		this.shrek_y = shrek_y;
 		this.dying = dying;
 		this.inGame = inGame;
-		this.N_GHOSTS = N_GHOSTS;
+		this.N_SHREKS = N_SHREKS;
 		this.x = 17 * BLOCK_SIZE; 
 		this.y = 17 * BLOCK_SIZE; 
 		pacmanEatingMode = false;
@@ -47,7 +47,6 @@ public class Pacman {
 		left = new ImageIcon("C:\\Users\\simeo\\Downloads\\left.gif").getImage();
 		fireMode = new ImageIcon("C:\\Users\\simeo\\Downloads\\y8 (1).gif\\").getImage();
 	}
-
 
 	public void move() { // Denna funktion hanterar pacmans rörelselogik. Vilket håll går pacman? Finns det en vägg? Käkar pacman en prick? Ska någon powerup aktiveras?
 
@@ -121,12 +120,12 @@ public class Pacman {
 		// This shiet works now - Kollar efter en kollision mellan spöke och mr pac 
 		// Det gick inte från början eftersom att vi inte tänkte på att ett block är 24 storlek därmed måste man kolla tolv pixlar upp, ner, höger och vänster efter en kollektion. 
 		// En kvadratmeter kan man tänka istället för endast mitten av kvadratmetern så är kollisionen med en hel låda
-		for (int i = 0; i < N_GHOSTS; i++) {
-			if (x > (ghost_x[i] - 12) && x < (ghost_x[i] + 12)
-					&& y > (ghost_y[i] - 12) && y < (ghost_y[i] + 12)
+		for (int i = 0; i < N_SHREKS; i++) {
+			if (x > (shrek_x[i] - 12) && x < (shrek_x[i] + 12)
+					&& y > (shrek_y[i] - 12) && y < (shrek_y[i] + 12)
 					&& inGame) {
 				if (pacmanEatingMode()) { // Sålänge pacman är i eatingMode så går det att käka spöken annars dör man vid en kollaps.
-					eatGhost(i);
+					eatShrek(i);
 				} else {
 					dying = true;
 					setDeath(dying);
@@ -138,6 +137,7 @@ public class Pacman {
 	}
 
 
+	
 	public void drawPac(Graphics2D g2d) { // Ritar ut rätt pacmanbild olika beroende på vilket håll pacman e påväg mot
 		if (pacmanEatingMode == false) {
 			if (req_dx == -1) {
@@ -167,16 +167,16 @@ public class Pacman {
 	}
 
 
-	public void updateNumGhosts(int numGhosts) {
-		this.N_GHOSTS = numGhosts;
+	public void updateNumShreks(int numShreks) {
+		this.N_SHREKS = numShreks;
 	}
 
-	public void eatGhost(int ghostIndex) {
+	public void eatShrek(int shrekIndex) {
 		// Ät spöket
-		model.getGhostClass().removeGhost(ghostIndex);
+		model.getShrekClass().removeShrek(shrekIndex);
 
 		// Uppdatera antalet spöken för stunden
-		updateNumGhosts(model.getGhostClass().getNumGhosts());
+		updateNumShreks(model.getShrekClass().getNumShreks());
 
 		// Öka poäng med 5
 		model.incrementScoreByFive();
@@ -256,6 +256,14 @@ public class Pacman {
 
 	public void setDeath(boolean dying) {
 		this.dying = dying;
+	}
+	
+	public int getX() {
+		return x;
+	}
+	
+	public int gety() {
+		return y;
 	}
 
 	public boolean getDeath() {

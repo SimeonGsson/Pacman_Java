@@ -33,21 +33,24 @@ public class Model extends JPanel implements ActionListener{
 	private final int BLOCK_SIZE = 24; // Storleken på rutorna
 	private final int N_BLOCKS = 20; // Antalet rutor per rad eller kolumn. Spelplanen kommer att vara 15x15
 	private final int SCREEN_SIZE = N_BLOCKS * BLOCK_SIZE; // rutornas totala yta. Hur stor yta kommer dessa rutor ta upp? Spelplanen kommer dock vara 15x15
-	private final int MAX_GHOSTS = 20; // Totala antalet spöken som kan finns med
-	private final int validSpeeds[] = {1,2,3,4,6,8}; // De olika hastigheterna som pacman och karaktärerna kan ha
-	private final int maxSpeed = 8; // // maxHastighet
-	
+	private final int MAX_SHREKS = 20; // Totala antalet spöken som kan finns med
+	private final int validSpeeds[] = {1,2,2,2,2,2,2,2,2,2}; // De olika hastigheterna som pacman och karaktärerna kan ha
+	private final int maxSpeed = 4; // // maxHastighet
+
 	private int currentSpeed = 2; // Pacmands hastighet från början
-	private int N_GHOSTS = 2; // Antalet spöken som finns med från början
+	private int N_SHREKS = 4; // Antalet spöken som finns med från början - denna variabel skickas med till Shrekklassen
+	private int fN_SHREKS = 3;
 	private int lives, score;
 	private int [] dx, dy; // Behövs för positionen för spökena
-	private int [] ghost_x, ghost_y, ghost_dx, ghost_dy, ghostSpeed; // Behövs också för att veta antalet och positionen av spökena 
+	private int [] shrek_x, shrek_y, shrek_dx, shrek_dy, shrekSpeed; // Behövs också för att veta antalet och positionen av spökena 
 	private int randomCoordinate_x, randomCoordinate_y, randomCoordinateTwo_x, randomCoordinateTwo_y, randomCoordinateThree_x, randomCoordinateThree_y;
 	
 	private Image heart, elixir, speed; // Ikoner för objekten
 	private GameMap gameMap; // Vi skapar en instans av klassen med banorna. Sedan kommer vi använda selectedMap för att kopiera den bana som ska användas. Vi börjar sätta startvärdet till bana ett men sedan går det att välja mellan ett och två
-	private Ghost ghostclass; // Vi skapar en instans av spökklassen
+	private Shrek shrekclass; // Vi skapar en instans av spökklassen
+	private BarrelShrek barrelShrekClass;
 	private Pacman pacmanclass; // VI skapar en instans av pacmanklassen
+	private Barrel barrelClass;
 	private Timer timer;
 	
 	private short [] selectedMap; // Den valda banan
@@ -58,13 +61,16 @@ public class Model extends JPanel implements ActionListener{
 
 
 	public Model() {
-		loadImages(); // Laddar upp bilderna till bildvariablerna ghost, heart, elixir och speed
+		loadImages(); // Laddar upp bilderna till bildvariablerna shrek, heart, elixir och speed
 		initVariables(); // Initierar variablerna och sätter startvärden
 		addKeyListener(new TAdapter()); // Skapar en ny klass för tangentbordslogik
 		gameMap = new GameMap(N_BLOCKS, screenData); //Skapar en ny bana genom att kopiera en av banorna från GameMap
 		selectedMap = gameMap.getMapOne(); // Dehär blir default map så att det funkar att välja mellan två olika
-		pacmanclass = new Pacman(screenData, N_BLOCKS, this, ghost_x, ghost_y, dying, N_GHOSTS, inGame); // Skapar en pacman klass och skickar in startvärden
-		ghostclass = new Ghost(screenData, N_BLOCKS, N_GHOSTS, BLOCK_SIZE, ghost_x, ghost_y, ghost_dx, ghost_dy, dx, dy, ghostSpeed); // Skapar en spök klass och skickar in startvärden
+		pacmanclass = new Pacman(screenData, N_BLOCKS, this, shrek_x, shrek_y, dying, N_SHREKS, inGame); // Skapar en pacman klass och skickar in startvärden
+		barrelClass = new Barrel(pacmanclass);
+		shrekclass = new Shrek(barrelClass, screenData, N_BLOCKS, N_SHREKS, BLOCK_SIZE, shrek_x, shrek_y, shrek_dx, shrek_dy, dx, dy, shrekSpeed); // Skapar en spök klass och skickar in startvärden
+		barrelShrekClass = new BarrelShrek(barrelClass, screenData, N_BLOCKS, N_SHREKS, BLOCK_SIZE, shrek_x, shrek_y, shrek_dx, shrek_dy, dx, dy, shrekSpeed);
+
 		setFocusable(true); // 
 		initGame(); // Starta spelet - Startar gameloopen som i sin tur kommer kalla på alla andra viktiga funktioner vardera 40:e millisekund.
 	}
@@ -79,12 +85,12 @@ public class Model extends JPanel implements ActionListener{
 	
 	private void initVariables() { // Här initierar vi alla variabler som inte är initierade ännu och ger dem ett startvärde
 		screenData = new short[N_BLOCKS * N_BLOCKS];
-		d = new Dimension(590, 540);
-		ghost_x = new int [MAX_GHOSTS];
-		ghost_dx = new int [MAX_GHOSTS];
-		ghost_y = new int [MAX_GHOSTS];
-		ghost_dy = new int [MAX_GHOSTS];
-		ghostSpeed = new int [MAX_GHOSTS];
+		d = new Dimension(590, 555);
+		shrek_x = new int [MAX_SHREKS];
+		shrek_dx = new int [MAX_SHREKS];
+		shrek_y = new int [MAX_SHREKS];
+		shrek_dy = new int [MAX_SHREKS];
+		shrekSpeed = new int [MAX_SHREKS];
 		dx = new int[4];
 		dy = new int [4];
 		timer = new Timer(40, this); // bestämmer hur ofta allt ritas om
@@ -106,7 +112,8 @@ public class Model extends JPanel implements ActionListener{
 		}
 		pacmanclass.move();
 		dying = pacmanclass.getDeath();
-		ghostclass.move();
+		shrekclass.move();
+		barrelShrekClass.move();
 		checkMaze();
 	}
 
@@ -215,16 +222,18 @@ public class Model extends JPanel implements ActionListener{
 
 	public void drawGameOver(Graphics2D g2d) {
 		g2d.setColor(Color.black);
-		g2d.drawRect(10, 100, 460, 100);
-		g2d.fillRect(10, 100, 460, 100);
+		g2d.drawRect(10, 100, 560, 150);
+		g2d.fillRect(10, 100, 560, 150);
 		g2d.setFont(bigFont);
 		g2d.setColor(Color.red);
 		String s = "SPELET ÄR ÖVER";
-		g2d.drawString(s,  135, 150);
+		g2d.drawString(s,  130, 150);
 		g2d.setFont(smallFont);
 		g2d.setColor(Color.orange);
 		String s2 = "Tryck SPACE för att starta spelet igen";
-		g2d.drawString(s2, 105, 172);
+		String s3 = "Du har även möjlighet att byta bana genom att trycka 1 || 2";
+		g2d.drawString(s2, 100, 172);
+		g2d.drawString(s3, 13, 200);
 	}
 	
 	private void drawEatPowerup(Graphics2D g2d) {
@@ -269,19 +278,28 @@ public class Model extends JPanel implements ActionListener{
 		if (finished) {
 			score += 500;
 
-			if (N_GHOSTS * 2 < MAX_GHOSTS) {
-				System.out.println(N_GHOSTS + " N_GHOSTS before * 2");
-				N_GHOSTS = N_GHOSTS*2;
-				System.out.println(N_GHOSTS + " N_GHOSTS");
-				ghostclass.setN_GHOSTS(N_GHOSTS);
-				ghostclass.setGhostActive();
+			if ((N_SHREKS * 2) < MAX_SHREKS) {
+				N_SHREKS = N_SHREKS*2;
+				shrekclass.setN_SHREKS(N_SHREKS);
+				shrekclass.setShrekActive();
 				System.out.println("Spelets spöken fördubblas");
-			} else if (N_GHOSTS + 3 < MAX_GHOSTS) {
-				N_GHOSTS += 3;
-			} else if (N_GHOSTS + 2 < MAX_GHOSTS) {
-				N_GHOSTS += 2;
-			} else if (N_GHOSTS + 1 < MAX_GHOSTS) {
-				N_GHOSTS += 1;
+			} else if (N_SHREKS + 3 < MAX_SHREKS) {
+				N_SHREKS += 3;
+				shrekclass.setN_SHREKS(N_SHREKS);
+				shrekclass.setShrekActive();
+				System.out.println("Spelets spöken ökar med tre");
+			} else if (N_SHREKS + 2 < MAX_SHREKS) {
+				N_SHREKS += 2;
+				shrekclass.setN_SHREKS(N_SHREKS);
+				shrekclass.setShrekActive();
+				System.out.println("Spelets spöken ökar med två");
+			} else if (N_SHREKS + 1 < MAX_SHREKS) {
+				N_SHREKS += 1;
+				shrekclass.setN_SHREKS(N_SHREKS);
+				shrekclass.setShrekActive();
+				System.out.println("Spelets spöken ökar med en"); // Denna borde dock inte köras om jag (Simeon) räknat rätt. Men den kan va kvar eftersom den skulle kunna vara relevant om man vill byta startvärdet för N_SHREKS
+			} else {
+				System.out.println("Du har klarat dig till max antal spöken. Bra jobbat!");
 			}
 			if (getCurrentSpeed() < maxSpeed) {
 				setCurrentSpeed(getCurrentSpeed() + 1);
@@ -291,7 +309,7 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	private void death() { // Denna funktion körs när pacman blir käkad. 
+	public void death() { // Denna funktion körs när pacman blir käkad. 
 		lives--;
 
 		if (lives == 0) { // om du tappar alla dina liv så skickar vi poängen till resultat tavlan.
@@ -303,7 +321,7 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 
-	Timer coordinateTimer = new Timer(5000, new ActionListener() { // Timer för att hålla koll så att changeCoordinates körs efter en viss specificerad tid
+	Timer coordinateTimer = new Timer(10000, new ActionListener() { // Timer för att hålla koll så att changeCoordinates körs efter en viss specificerad tid
 	    @Override
 	    public void actionPerformed(ActionEvent e) { // När timern har gått ut så får powerupsen nya koordinater
 	        changeCoordinates();
@@ -315,7 +333,7 @@ public class Model extends JPanel implements ActionListener{
 	    int[][] coordinates = {	
 	    		{3, 16}, {9, 3}, {7, 2},
 	    		{18, 14}, {2, 14}, {6, 5}, {18, 14}, {13, 18}, {3, 7} ,{3, 16}, {3, 9}, {3, 12}, {3, 12}, {12, 3}, {9, 3}, {7, 2}, {12, 4}, {2, 4}, 
-	    		{17, 15}, {3, 14}, {3, 6}, {11, 14}, {11, 17}, {6, 7} ,{2, 16}, {2, 9}, {3, 6}, {5, 12}, {19, 3}, {7, 3}, {2, 2}, {3, 2}, {2, 17}, 
+	    		{17, 15}, {3, 14}, {2, 5}, {11, 14}, {11, 17}, {5, 7} ,{2, 16}, {2, 9}, {3, 6}, {5, 12}, {19, 3}, {7, 3}, {2, 2}, {3, 2}, {2, 17}, 
 	    };
 
 	    Random rand = new Random();
@@ -349,7 +367,6 @@ public class Model extends JPanel implements ActionListener{
 		lives = 1; // Startar med ett liv
 		score = 0; // Startar med 0 poäng.
 		initLevel(); // initiera banan
-		N_GHOSTS = 2; // Startar med åtta spöken
 		setCurrentSpeed(2); // Pacmans hastighet initieras
 	}
 
@@ -368,11 +385,11 @@ public class Model extends JPanel implements ActionListener{
 		int dx = 1;
 		int random;
 
-		for (int i = 0; i < N_GHOSTS; i++) { // För varje spöke
-			ghost_y[i] = 2 * BLOCK_SIZE;
-			ghost_x[i] = 2 * BLOCK_SIZE;  
-			ghost_dy[i] = 0;
-			ghost_dx[i] = dx;
+		for (int i = 0; i < N_SHREKS; i++) { // För varje spöke
+			shrek_y[i] = 2 * BLOCK_SIZE;
+			shrek_x[i] = 2 * BLOCK_SIZE;  
+			shrek_dy[i] = 0;
+			shrek_dx[i] = dx;
 			dx = -dx;
 			random = (int) (Math.random() * (getCurrentSpeed() + 1));
 
@@ -380,7 +397,7 @@ public class Model extends JPanel implements ActionListener{
 				random = getCurrentSpeed();
 			}
 
-			ghostSpeed[i] = validSpeeds[random]; // spökenas hastighet sätts ut fast randomized
+			shrekSpeed[i] = validSpeeds[random]; // spökenas hastighet sätts ut fast randomized
 		}
 
 		pacmanclass.setX(17 * BLOCK_SIZE);
@@ -407,11 +424,32 @@ public class Model extends JPanel implements ActionListener{
 		drawHighScore(g2d);
 		drawPowerUpText(g2d);
 		pacmanclass.drawPac(g2d);
-		ghostclass.draw(g2d, ghost_x, ghost_y);
+		shrekclass.draw(g2d, shrek_x, shrek_y);
+		barrelShrekClass.draw(g2d, shrek_x, shrek_y);
 		drawEatPowerup(g2d);
 		drawHealthPowerup(g2d);
 		drawSpeedPowerup(g2d);
-
+		barrelShrekClass.ChangeTemporaryValues(shrekclass.getShrek_x()[0], shrekclass.getShrek_y()[0], shrekclass.getShrek_dx()[0], shrekclass.getShrek_dy()[0]);
+		
+		// Logiken för barrel - En tunna skickas ut var 10:e sekund - Efter 3 sekunder så ska den sprängas - 
+		// - Då kommer ett anrop till att sätta ShouldExplode till true. När den är true så går if sats nummer två igång
+		
+		
+		if (barrelShrekClass.getShouldBarrelRollOrNot()) {
+		//    System.out.println("Nu körs drawRollingBarrel i model ");
+	//	    System.out.print(barrelClass.getShouldItExplodeOrNah());
+		    barrelShrekClass.drawRollingBarrel(g2d);
+		}	
+		
+	//	System.out.println(barrelClass.getShouldItExplodeOrNah() + " - Värdet för getShould");
+		
+		if (barrelClass.getShouldItExplodeOrNah()) {
+	//		System.out.println(barrelClass.getShouldItExplodeOrNah());
+			barrelClass.drawExplosion(g2d, barrelShrekClass.getBarrelCordX(), barrelShrekClass.getBarrelCordY());
+			barrelClass.Explode(barrelShrekClass.getBarrelCordX(), barrelShrekClass.getBarrelCordY());
+	//			System.out.println("Explosion metoden kallad på i model");
+		}
+	
 
 		if (inGame) {
 			playGame(g2d);
@@ -438,16 +476,16 @@ public class Model extends JPanel implements ActionListener{
 	}
 	
 	
-	public void updateNumGhosts(int numGhosts) {
-		this.N_GHOSTS = numGhosts;
+	public void updateNumShreks(int numShreks) {
+		this.N_SHREKS = numShreks;
 	}
 
 	
-	public void removeGhost(int currentGhostIndex) {
-		// kallar på removeghost funktionen i ghost klassen
-		ghostclass.removeGhost(currentGhostIndex);
-		// Uppdaterar antalet spöken i denna klass vilket uppdaterar N_GHOSTS överallt. Detta går eftersom jag skrivit en get funktion för N_GHOSTS
-		N_GHOSTS--;
+	public void removeShrek(int currentShrekIndex) {
+		// kallar på removeshrek funktionen i shrek klassen
+		shrekclass.removeShrek(currentShrekIndex);
+		// Uppdaterar antalet spöken i denna klass vilket uppdaterar N_SHREKS överallt. Detta går eftersom jag skrivit en get funktion för N_SHREKS
+		N_SHREKS--;
 	}
 	
 	
@@ -462,8 +500,8 @@ public class Model extends JPanel implements ActionListener{
 	}
 
 	
-	public Ghost getGhostClass() {
-		return ghostclass;
+	public Shrek getShrekClass() {
+		return shrekclass;
 	}
 	
 	public short[] getScreenData() {
@@ -480,8 +518,12 @@ public class Model extends JPanel implements ActionListener{
 		return currentSpeed;
 	}
 
-	public int get_N_GHOSTS() {
-		return N_GHOSTS;
+	public int get_N_SHREKS() {
+		return N_SHREKS;
+	}
+	
+	public int get_fN_SHREKS() {
+		return fN_SHREKS;
 	}
 	
 	public int get_randomCoordinate_x() {
